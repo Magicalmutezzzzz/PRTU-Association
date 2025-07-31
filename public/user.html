@@ -1,0 +1,106 @@
+<!-- USER PAGE -->
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Users</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      color: #004080;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background-color: #004080;
+      color: white;
+    }
+    button {
+      padding: 6px 10px;
+      margin: 2px;
+      font-size: 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .edit-btn {
+      background-color: #28a745;
+      color: white;
+    }
+    .delete-btn {
+      background-color: #dc3545;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h2>Saved Users</h2>
+  <table id="usersTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Contact</th>
+        <th>ID Number</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    async function loadUsers() {
+      const res = await fetch('/get-users');
+      const users = await res.json();
+      const tbody = document.querySelector('#usersTable tbody');
+      tbody.innerHTML = '';
+
+      users.forEach(user => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${user.name}</td>
+          <td>${user.contact}</td>
+          <td>${user.idNumber}</td>
+          <td>
+            <button class="edit-btn" onclick="editUser(${user.id})">Edit</button>
+            <button class="delete-btn" onclick="deleteUser(${user.id})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function editUser(id) {
+      window.location.href = `dashboard.html?edit=${id}`;
+    }
+
+    async function deleteUser(id) {
+      if (!confirm('Are you sure you want to delete this user?')) return;
+      const res = await fetch('/delete-user', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ id })
+      });
+      const result = await res.json();
+      alert(result.message);
+      loadUsers();
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>

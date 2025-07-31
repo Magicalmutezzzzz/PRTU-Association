@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PRTU Dashboard</title>
+  <script src="http://localhost:11100/mfs100.js"></script> <!-- MFS100/MFS110 SDK -->
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC4xomeSvvvmd0FYaTl1ieFI0Kw-xim9kI",
+      authDomain: "new-prototype-bo8vj.firebaseapp.com",
+      projectId: "new-prototype-bo8vj",
+      storageBucket: "new-prototype-bo8vj.appspot.com",
+      messagingSenderId: "299186708270",
+      appId: "1:299186708270:web:4be08ed24936ced407e4bf"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+
+    async function uploadToFirebase(base64Image, folder, filename) {
+      const storageRef = ref(storage, `${folder}/${filename}`);
+      await uploadString(storageRef, base64Image, 'data_url');
+      return await getDownloadURL(storageRef);
+    }
+
+    window.firebaseUploader = uploadToFirebase;
+  </script>
+
+  <style>
+    /* (CSS kept exactly same as yours) */
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      font-size: 14px;
+    }
+    header {
+      background: #003366;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+    header button {
+      background-color: #ff4444;
+      color: white;
+      border: none;
+      padding: 5px 12px;
+      font-size: 13px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    nav {
+      display: flex;
+      background: #ddd;
+    }
+    nav button {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      cursor: pointer;
+      background: #bbb;
+      font-size: 13px;
+    }
+    nav button.active {
+      background: #003366;
+      color: white;
+    }
+    main {
+      padding: 10px;
+    }
+    .tab { display: none; }
+    .tab.active { display: block; }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .form-left, .form-right {
+      flex: 1;
+      min-width: 280px;
+    }
+    .form-group {
+      margin-bottom: 8px;
+    }
+    input, button {
+      width: 100%;
+      padding: 7px;
+      font-size: 13px;
+    }
+    .tab-section {
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .user-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .user-card {
+      background: white;
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 0 4px rgba(0,0,0,0.1);
+      width: 260px;
+      font-size: 13px;
+    }
+    video, canvas, img.fingerprint-preview {
+      width: 100%;
+      border-radius: 4px;
+      margin-top: 6px;
+    }
+    canvas, img.fingerprint-preview {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PRTU Dashboard</h1>
+    <button onclick="logout()">Logout</button>
+  </header>
+
+  <nav>
+    <button class="active" onclick="switchTab('addTab', this)">Add/Edit User</button>
+    <button onclick="switchTab('logsTab', this)">View Logs</button>
+  </nav>
+
+  <main>
+    <div id="addTab" class="tab active">
+      <h2 id="form-title">Add New User</h2>
+      <div class="form-row">
+        <div class="form-left">
+          <!-- Input fields -->
+          <div class="form-group"><input type="text" id="name" placeholder="Full Name" /></div>
+          <div class="form-group"><input type="number" id="age" placeholder="Age" /></div>
+          <div class="form-group"><input type="text" id="occupation" placeholder="Occupation" /></div>
+          <div class="form-group"><input type="text" id="address" placeholder="Address" /></div>
+          <div class="form-group"><input type="text" id="contact" placeholder="Contact Number" /></div>
+          <div class="form-group"><input type="text" id="idNumber" placeholder="Identification Number" /></div>
+          <div class="form-group"><input type="text" id="documentNumber" placeholder="Document Number" /></div>
+          <div class="form-group"><input type="text" id="notarySrNo" placeholder="Notary Registered Sr No" /></div>
+          <div class="form-group"><input type="text" id="documentType" placeholder="Type of Document" /></div>
+          <div class="form-group"><input type="text" id="executingParties" placeholder="Executing Parties" /></div>
+          <div class="form-group"><input type="text" id="propertyAddress" placeholder="Address of Property" /></div>
+          <div class="form-group"><input type="text" id="propertyValue" placeholder="Consideration of Property" /></div>
+          <div class="form-group">
+            <button onclick="saveUser()">Save</button>
+            <button onclick="clearForm()">Clear</button>
+          </div>
+        </div>
+
+        <div class="form-right">
+          <div class="tab-section">
+            <label><strong>Click on video to capture photo</strong></label>
+            <video id="video" autoplay muted playsinline onclick="takePhoto()"></video>
+            <canvas id="canvas"></canvas>
+          </div>
+
+          <div class="tab-section">
+            <label><strong>Fingerprint Capture (via MFS110)</strong></label>
+            <button onclick="captureFingerprint()">Capture Thumb</button>
+            <img id="fingerprintPreview" class="fingerprint-preview" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="logsTab" class="tab">
+      <h2>Saved Users</h2>
+      <div class="user-cards" id="userCards"></div>
+    </div>
+  </main>
+
+  <script>
+    let editingUserId = null;
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+      if (tabId === 'logsTab') loadUsers();
+    }
+
+    function logout() {
+      window.location.href = "index.html";
+    }
+
+    function clearForm() {
+      editingUserId = null;
+      document.getElementById("form-title").innerText = "Add New User";
+      document.querySelectorAll("input").forEach(input => input.value = "");
+      document.getElementById("canvas").style.display = "none";
+      document.getElementById("fingerprintPreview").style.display = "none";
+    }
+
+    async function saveUser() {
+      const canvas = document.getElementById("canvas");
+      const photoBase64 = canvas.toDataURL("image/png");
+      const thumbBase64 = document.getElementById("fingerprintPreview").src || "";
+
+      const id = editingUserId || Date.now();
+      const photoURL = photoBase64 ? await firebaseUploader(photoBase64, "photos", id + ".png") : "";
+      const thumbURL = thumbBase64 ? await firebaseUploader(thumbBase64, "fingerprints", id + ".bmp") : "";
+
+      const user = {
+        id: id,
+        name: document.getElementById("name").value,
+        age: document.getElementById("age").value,
+        occupation: document.getElementById("occupation").value,
+        address: document.getElementById("address").value,
+        contact: document.getElementById("contact").value,
+        idNumber: document.getElementById("idNumber").value,
+        photo: photoURL,
+        thumbImg: thumbURL,
+        documentNumber: document.getElementById("documentNumber").value,
+        notarySrNo: document.getElementById("notarySrNo").value,
+        documentType: document.getElementById("documentType").value,
+        executingParties: document.getElementById("executingParties").value,
+        propertyAddress: document.getElementById("propertyAddress").value,
+        propertyValue: document.getElementById("propertyValue").value
+      };
+
+      fetch(editingUserId ? "/update-user" : "/add-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user)
+      }).then(() => {
+        clearForm();
+        switchTab('logsTab', document.querySelectorAll('nav button')[1]);
+      });
+    }
+
+    function loadUsers() {
+      fetch("/get-users")
+        .then(res => res.json())
+        .then(users => {
+          const container = document.getElementById("userCards");
+          container.innerHTML = "";
+          users.forEach(user => {
+            const div = document.createElement("div");
+            div.className = "user-card";
+            div.innerHTML = `
+              <h3>${user.name}</h3>
+              <p><strong>Age:</strong> ${user.age}</p>
+              <p><strong>Occupation:</strong> ${user.occupation}</p>
+              <p><strong>Contact:</strong> ${user.contact}</p>
+              <p><strong>ID:</strong> ${user.idNumber}</p>
+              <button onclick='editUser(${JSON.stringify(user)})'>Edit</button>
+              <button onclick='deleteUser(${user.id})'>Delete</button>
+            `;
+            container.appendChild(div);
+          });
+        });
+    }
+
+    function editUser(user) {
+      switchTab('addTab', document.querySelectorAll('nav button')[0]);
+      editingUserId = user.id;
+      document.getElementById("form-title").innerText = "Edit User";
+      document.getElementById("name").value = user.name;
+      document.getElementById("age").value = user.age;
+      document.getElementById("occupation").value = user.occupation;
+      document.getElementById("address").value = user.address;
+      document.getElementById("contact").value = user.contact;
+      document.getElementById("idNumber").value = user.idNumber;
+      document.getElementById("documentNumber").value = user.documentNumber || "";
+      document.getElementById("notarySrNo").value = user.notarySrNo || "";
+      document.getElementById("documentType").value = user.documentType || "";
+      document.getElementById("executingParties").value = user.executingParties || "";
+      document.getElementById("propertyAddress").value = user.propertyAddress || "";
+      document.getElementById("propertyValue").value = user.propertyValue || "";
+
+      if (user.photo) {
+        const img = new Image();
+        img.src = user.photo;
+        img.onload = () => {
+          const canvas = document.getElementById("canvas");
+          const ctx = canvas.getContext("2d");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          canvas.style.display = "block";
+        }
+      }
+
+      if (user.thumbImg) {
+        const fp = document.getElementById("fingerprintPreview");
+        fp.src = user.thumbImg;
+        fp.style.display = "block";
+      }
+    }
+
+    function deleteUser(id) {
+      if (confirm("Delete this user?")) {
+        fetch("/delete-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id })
+        }).then(() => loadUsers());
+      }
+    }
+
+    function captureFingerprint() {
+      if (!window.CaptureFinger) {
+        alert("MFS SDK not found. Is RDService running?");
+        return;
+      }
+      CaptureFinger(true, (result) => {
+        const img = document.getElementById("fingerprintPreview");
+        img.src = "data:image/bmp;base64," + result.BitmapData;
+        img.style.display = "block";
+      }, (error) => {
+        alert("Fingerprint capture failed: " + error);
+      });
+    }
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        document.getElementById("video").srcObject = stream;
+      }).catch(() => alert("Webcam access denied"));
+
+    function takePhoto() {
+      const video = document.getElementById("video");
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+      canvas.style.display = "block";
+    }
+  </script>
+</body>
+</html>

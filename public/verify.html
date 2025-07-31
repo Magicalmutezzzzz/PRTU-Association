@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Verify & Print User</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #003366;
+    }
+
+    form {
+      max-width: 400px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #003366;
+      color: white;
+      border: none;
+      width: 100%;
+      border-radius: 4px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    #result {
+      display: none;
+      max-width: 900px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .section {
+      border: 1px solid #999;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+
+    .section h3 {
+      margin-top: 0;
+      background: #003366;
+      color: white;
+      padding: 5px;
+      font-size: 16px;
+    }
+
+    .field {
+      margin-bottom: 10px;
+    }
+
+    .photo-box {
+      display: flex;
+      gap: 30px;
+      margin-top: 10px;
+    }
+
+    .photo-box div {
+      text-align: center;
+    }
+
+    .photo-box img {
+      width: 120px;
+      height: auto;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    #printBtn {
+      background: green;
+      font-weight: bold;
+    }
+
+    @media print {
+      form, #printBtn {
+        display: none !important;
+      }
+
+      #result {
+        border: none;
+        box-shadow: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: white;
+        padding: 0;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Verify User Details</h2>
+
+  <!-- Search Form -->
+  <form onsubmit="verifyUser(event)">
+    <label>Contact Number:</label>
+    <input type="text" id="contact" required>
+
+    <label>Identification Number:</label>
+    <input type="text" id="idNumber" required>
+
+    <button type="submit">Verify</button>
+  </form>
+
+  <!-- Verified Result Display -->
+  <div id="result">
+    <div id="userDetails"></div>
+    <button id="printBtn" onclick="printUser()">Download / Print</button>
+  </div>
+
+  <script>
+    // 🔍 Search for user in the system
+    async function verifyUser(e) {
+      e.preventDefault();
+
+      const contact = document.getElementById('contact').value.trim();
+      const idNumber = document.getElementById('idNumber').value.trim();
+
+      const res = await fetch('/get-users');
+      const users = await res.json();
+
+      const match = users.find(u => u.contact === contact && u.idNumber === idNumber);
+      const resultDiv = document.getElementById('result');
+      const userDetails = document.getElementById('userDetails');
+
+      if (match) {
+        resultDiv.style.display = 'block';
+
+        userDetails.innerHTML = `
+          <div class="section">
+            <h3>Parties Info</h3>
+            <div class="field"><strong>Name:</strong> ${match.name}</div>
+            <div class="field"><strong>Age:</strong> ${match.age}</div>
+            <div class="field"><strong>Occupation:</strong> ${match.occupation}</div>
+            <div class="field"><strong>Address:</strong> ${match.address}</div>
+            <div class="field"><strong>Contact:</strong> ${match.contact}</div>
+            <div class="field"><strong>Identification Number:</strong> ${match.idNumber}</div>
+          </div>
+
+          <div class="section">
+            <h3>Document Info</h3>
+            <div class="field"><strong>Document Number:</strong> ${match.documentNumber || '—'}</div>
+            <div class="field"><strong>Notary Registered Sr No:</strong> ${match.notarySrNo || '—'}</div>
+            <div class="field"><strong>Type of Document:</strong> ${match.documentType || '—'}</div>
+            <div class="field"><strong>Executing Parties:</strong> ${match.executingParties || '—'}</div>
+            <div class="field"><strong>Property Address:</strong> ${match.propertyAddress || '—'}</div>
+            <div class="field"><strong>Property Value:</strong> ${match.propertyValue || '—'}</div>
+          </div>
+
+          <div class="section">
+            <h3>Biometric Details</h3>
+            <div class="photo-box">
+              <div>
+                <div><strong>Photo</strong></div>
+                <img src="${match.photo}" alt="Photo">
+              </div>
+              <div>
+                <div><strong>Thumb Impression</strong></div>
+                <img src="${match.thumbImg}" alt="Fingerprint">
+              </div>
+            </div>
+          </div>
+        `;
+        document.getElementById('printBtn').style.display = 'inline-block';
+      } else {
+        resultDiv.style.display = 'block';
+        userDetails.innerHTML = `<p style="color:red;">❌ No matching user found.</p>`;
+        document.getElementById('printBtn').style.display = 'none';
+      }
+    }
+
+    // 🖨️ Download or print only the result section
+    function printUser() {
+      const printContent = document.getElementById('result').innerHTML;
+      const original = document.body.innerHTML;
+      document.body.innerHTML = printContent;
+      window.print();
+      document.body.innerHTML = original;
+      window.location.reload();
+    }
+  </script>
+</body>
+</html>
