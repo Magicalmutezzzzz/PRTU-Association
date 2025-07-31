@@ -10,7 +10,7 @@ const PORT = 3000;
 // ==========================
 // 🌐 MongoDB Connection
 // ==========================
-require('dotenv').config();
+require('.env').config();
 const uri = process.env.MONGO_URI;
 
 mongoose.connect(uri, {
