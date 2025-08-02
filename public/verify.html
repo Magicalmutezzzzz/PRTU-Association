@@ -3,177 +3,128 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Verify & Print Sale Deed - PRTU</n  >
+  <title>Verify & Print Sale Deed - PRTU</title>
   <!--
     verify.html
-    - Inputs: Notary Sr. No. & Document Number
-    - Fetches record, displays full deed in official format
-    - Horizontal tables for purchaser/seller/witness with signature box
-    - Footer sections for contents, schedule, consideration
-    - Print-only styles to hide form and controls
+    - Verify by Notary Sr. No. & Document Number
+    - Displays full sale deed in official horizontal format
+    - Includes Notary header, metadata, executing parties table, content sections, and print signature boxes
+    - Print CSS hides inputs and shows only deed layout
   -->
   <style>
-    /* Global resets and typography */
     body { font-family: Arial, sans-serif; background: #f3f6f8; margin: 0; padding: 20px; }
     h2 { text-align: center; color: #003366; margin-bottom: 20px; }
-    .flash-msg { display: none; max-width: 400px; margin: 10px auto; padding: 10px; background: #ffe5e5; color: #cc0000; border:1px solid #cc0000; border-radius:5px; text-align:center; font-weight:bold; }
-    /* Verification form */
-    form { max-width: 400px; margin:0 auto 30px; background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 5px rgba(0,0,0,0.1); }
-    label { display:block; margin-top:10px; font-weight:bold; }
-    input { width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px; font-size:14px; }
-    button { margin-top:15px; padding:10px; background:#003366; color:#fff; border:none; width:100%; border-radius:4px; font-size:15px; cursor:pointer; }
-    /* Result container */
-    #result { display:none; max-width:900px; margin:30px auto; background:#fff; padding:20px; border-radius:8px; border:1px solid #ccc; }
-    /* Notary header */
-    .notary-header { text-align:center; margin-bottom:20px; }
-    .notary-header h1 { margin:0; font-size:22px; }
-    .notary-header p { margin:4px 0; font-size:14px; }
-    /* Document metadata */
-    .meta-info { margin-bottom:20px; font-size:14px; }
-    .meta-info div { margin:4px 0; }
-    /* Executing parties table */
-    .exec-table { width:100%; border-collapse:collapse; margin-bottom:20px; }
-    .exec-table th, .exec-table td { border:1px solid #000; padding:8px; vertical-align:top; }
-    .exec-table th { background:#e0e0e0; }
-    .signature-cell { width:150px; }
-    .sig-box { width:100%; height:100px; border-bottom:1px solid #000; }
-    /* Content sections */
-    .contents-section, .schedule-section, .consideration-section { margin-bottom:20px; border:1px solid #000; padding:8px; font-size:14px; }
-    /* Print button */
-    #printBtn { background:green; color:#fff; font-weight:bold; float:right; margin-top:20px; padding:10px 20px; border:none; border-radius:4px; cursor:pointer; }
-    /* Print media: hide inputs and button */
+    .flash-msg { display: none; max-width: 400px; margin: 0 auto 20px; padding: 10px; background: #ffe5e5; color: #cc0000; border:1px solid #cc0000; border-radius:5px; text-align:center; font-weight:bold; }
+    form { max-width: 400px; margin: 0 auto 30px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+    button { margin-top: 15px; padding: 10px; background: #003366; color: #fff; border: none; width: 100%; border-radius: 4px; font-size: 15px; cursor: pointer; }
+    #result { display: none; max-width: 960px; margin: 0 auto; background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+    .notary-header { text-align: center; margin-bottom: 20px; }
+    .notary-header h1 { margin: 0; font-size: 24px; }
+    .notary-header p { margin: 4px 0; font-size: 14px; }
+    .meta-info { margin-bottom: 20px; font-size: 14px; }
+    .meta-info div { margin: 4px 0; }
+    .exec-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .exec-table th, .exec-table td { border: 1px solid #000; padding: 8px; vertical-align: top; }
+    .exec-table th { background: #e0e0e0; }
+    .sig-box { width: 100%; height: 100px; border-bottom: 1px solid #000; }
+    .contents, .schedule, .consideration { border: 1px solid #000; padding: 8px; font-size: 14px; margin-bottom: 10px; }
+    #printBtn { background: green; color: #fff; font-weight: bold; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; display: block; margin: 20px auto; }
     @media print {
-      form, #printBtn, .flash-msg { display:none !important; }
-      body { background:#fff; padding:0; }
-      #result { border:none; box-shadow:none; margin:0; padding:0; }
+      form, #printBtn, .flash-msg { display: none !important; }
+      #result { border: none; box-shadow: none; margin: 0; padding: 0; }
+      body { background: #fff; padding: 0; }
     }
   </style>
 </head>
 <body>
-
   <h2>Verify Sale Deed</h2>
   <div id="flashMessage" class="flash-msg">❌ No matching record found.</div>
-
-  <!-- Verification form --><form onsubmit="verifyRecord(event)">
+  <form onsubmit="verifyRecord(event)">
     <label>Notary Registered Sr. No.:</label>
     <input type="text" id="notarySrNo" required />
     <label>Document Number:</label>
     <input type="text" id="docNumber" required />
     <button type="submit">Verify</button>
   </form>
-
-  <!-- Deed preview -->
   <div id="result">
-    <!-- Notary header -->
     <div class="notary-header">
       <h1>ROHAN T. GAIKWAD</h1>
       <p>Advocate & Notary Public, Government of India</p>
-      <p>NJ House, Cabin No-NP1, Opp Kalyan Court Gate No.2, Kalyan (W), Pin Code - 421 301</p>
+      <p>NJ House, Cabin No-NP1, Opp Kalyan Court Gate No.2, Kalyan (W), Pin Code 421301</p>
       <p>Email: info@gaikwadslegal.com | Phone: 9356712199 / 9967526951</p>
     </div>
-
-    <!-- Document metadata -->
     <div class="meta-info">
-      <div><strong>Document Notarised and Registered at Serial Number:</strong> <span id="z_srno"></span></div>
-      <div><strong>Document Number :</strong> <span id="z_docno"></span></div>
-      <div><strong>Type Of Document :</strong> <span id="z_docType"></span></div>
+      <div><strong>Serial Number:</strong> <span id="z_srno"></span></div>
+      <div><strong>Document Number:</strong> <span id="z_docno"></span></div>
+      <div><strong>Type of Document:</strong> <span id="z_docType"></span></div>
     </div>
-
-    <!-- Executing Parties: Purchaser & Seller -->
     <table class="exec-table">
       <thead>
         <tr>
-          <th>EXECUTING PARTIES - Purchaser</th>
-          <th>Digital Photo</th>
-          <th>Thumb Impression</th>
-          <th>Signature</th>
+          <th>PARTY</th><th>Digital Photo</th><th>Thumb Impression</th><th>Signature</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td id="z_purchaser"></td>
-          <td><img id="z_photoP" src="" width="100"></td>
-          <td><img id="z_thumbP" src="" width="100"></td>
-          <td class="signature-cell"><div class="sig-box"></div></td>
+          <td><img id="z_photoP" width="80"></td>
+          <td><img id="z_thumbP" width="80"></td>
+          <td><div class="sig-box"></div></td>
         </tr>
         <tr>
           <td id="z_seller"></td>
-          <td><img id="z_photoS" src="" width="100"></td>
-          <td><img id="z_thumbS" src="" width="100"></td>
-          <td class="signature-cell"><div class="sig-box"></div></td>
+          <td><img id="z_photoS" width="80"></td>
+          <td><img id="z_thumbS" width="80"></td>
+          <td><div class="sig-box"></div></td>
         </tr>
         <tr>
           <td id="z_witness"></td>
-          <td><img id="z_photoW" src="" width="100"></td>
-          <td><img id="z_thumbW" src="" width="100"></td>
-          <td class="signature-cell"><div class="sig-box"></div></td>
+          <td><img id="z_photoW" width="80"></td>
+          <td><img id="z_thumbW" width="80"></td>
+          <td><div class="sig-box"></div></td>
         </tr>
       </tbody>
     </table>
-
-    <!-- Contents and schedule -->
-    <div class="contents-section">
-      <strong>CONTENTS OF THE DOCUMENT MENTIONED THEREIN :</strong> <span id="z_contents"></span>
-    </div>
-    <div class="schedule-section">
-      <strong>SCHEDULE OF PROPERTY :</strong> <span id="z_schedule"></span>
-    </div>
-    <div class="consideration-section">
-      <strong>CONSIDERATION OF PROPERTY :</strong> <span id="z_consideration"></span>
-    </div>
-
-    <!-- Print button -->
+    <div class="contents"><strong>CONTENTS OF THE DOCUMENT MENTIONED THEREIN:</strong> <span id="z_contents"></span></div>
+    <div class="schedule"><strong>SCHEDULE OF PROPERTY:</strong> <span id="z_schedule"></span></div>
+    <div class="consideration"><strong>CONSIDERATION OF PROPERTY:</strong> <span id="z_consideration"></span></div>
     <button id="printBtn" onclick="printRecord()">Print / Download</button>
   </div>
-
   <script>
     async function verifyRecord(e) {
       e.preventDefault();
       const sr=document.getElementById('notarySrNo').value.trim();
       const dn=document.getElementById('docNumber').value.trim();
-      const flash=document.getElementById('flashMessage');
-      const resDiv=document.getElementById('result');
-      flash.style.display='none'; resDiv.style.display='none';
+      document.getElementById('flashMessage').style.display='none';
+      document.getElementById('result').style.display='none';
       try {
         const recs=await (await fetch('/get-users')).json();
-        const r=recs.find(u=>u.notarySrNo===sr && u.documentNumber===dn);
-        if(!r){ flash.innerText='❌ Record not found.'; flash.style.display='block'; return; }
-        // Populate metadata
-        document.getElementById('z_srno').innerText=r.notarySrNo;
-        document.getElementById('z_docno').innerText=r.documentNumber;
-        document.getElementById('z_docType').innerText=r.documentType;
-        // Helper to build multi-line party details
-        function formatParty(prefix, fields){
-          return fields.map(f=>{
-            const val=r[f]||'';
-            if(f==='purchaserName'||f==='sellerName'||f==='witnessName') return `<strong>${val}</strong>`;
-            return `${val}`;
-          }).join('<br>');
-        }
-        // Fill parties
-        document.getElementById('z_purchaser').innerHTML=formatParty('P',['purchaserName','purchaserAge','purchaserOccupation','purchaserAddress','purchaserContact','purchaserIdNumber']);
-        document.getElementById('z_photoP').src=r.photoData||'';
-        document.getElementById('z_thumbP').src=r.thumbData||'';
-        document.getElementById('z_seller').innerHTML=formatParty('S',['sellerName','sellerAge','sellerOccupation','sellerAddress','sellerContact','sellerIdNumber']);
+        const r=recs.find(u=>u.metaNotarySrNo===sr&&u.metaDocumentNumber===dn);
+        if(!r){ document.getElementById('flashMessage').style.display='block'; return; }
+        // Populate header data
+        document.getElementById('z_srno').innerText=r.metaNotarySrNo;
+        document.getElementById('z_docno').innerText=r.metaDocumentNumber;
+        document.getElementById('z_docType').innerText=r.metaDocumentType;
+        // Format party block
+        const fmt=(fields)=>fields.map(f=>`<div>${r[f]||''}</div>`).join('');
+        document.getElementById('z_purchaser').innerHTML=fmt(['purchaserName','purchaserAge','purchaserOccupation','purchaserAddress','purchaserContact','purchaserIdNumber']);
+        document.getElementById('z_photoP').src=r.photoP||'';
+        document.getElementById('z_thumbP').src=r.thumbP||'';
+        document.getElementById('z_seller').innerHTML=fmt(['sellerName','sellerAge','sellerOccupation','sellerAddress','sellerContact','sellerIdNumber']);
         document.getElementById('z_photoS').src=r.photoS||'';
         document.getElementById('z_thumbS').src=r.thumbS||'';
-        document.getElementById('z_witness').innerHTML=formatParty('W',['witnessName','witnessAge','witnessOccupation','witnessAddress','witnessContact','witnessIdNumber']);
+        document.getElementById('z_witness').innerHTML=fmt(['witnessName','witnessAge','witnessOccupation','witnessAddress','witnessContact','witnessIdNumber']);
         document.getElementById('z_photoW').src=r.photoW||'';
         document.getElementById('z_thumbW').src=r.thumbW||'';
-        // Contents
-        document.getElementById('z_contents').innerText=r.documentType || '';
-        document.getElementById('z_schedule').innerText=r.propertyAddress || '';
-        document.getElementById('z_consideration').innerText=r.propertyValue || '';
-        resDiv.style.display='block';
-      } catch(e){ flash.innerText='❌ Error fetching.'; flash.style.display='block'; }
+        document.getElementById('z_contents').innerText=r.metaDocumentType||'';
+        document.getElementById('z_schedule').innerText=r.scheduleOfProperty||'';
+        document.getElementById('z_consideration').innerText=r.consideration||'';
+        document.getElementById('result').style.display='block';
+      } catch(err){ console.error(err); document.getElementById('flashMessage').innerText='❌ Error fetching.'; document.getElementById('flashMessage').style.display='block'; }
     }
-    function printRecord(){
-      const orig=document.body.innerHTML;
-      document.body.innerHTML=document.getElementById('result').outerHTML;
-      window.print();
-      document.body.innerHTML=orig;
-      window.location.reload();
-    }
+    function printRecord(){ const orig=document.body.innerHTML; document.body.innerHTML=document.getElementById('result').outerHTML; window.print(); document.body.innerHTML=orig; window.location.reload(); }
   </script>
 </body>
 </html>
