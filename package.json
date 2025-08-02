@@ -1,7 +1,6 @@
 {
   "name": "prtu-app",
   "version": "1.0.0",
-  "description": "PRTU Notary System",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
