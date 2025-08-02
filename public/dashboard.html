@@ -4,88 +4,33 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PRTU Dashboard</title>
-  <!-- Fingerprint SDK: ensure RDService is running on localhost:11100 -->
   <script src="http://localhost:11100/mfs100.js"></script>
-
-  <!-- Inline Styles for simplicity; consider moving to CSS file -->
   <style>
-    /* Basic reset */
-    body, h1, h2, input, button, video, canvas { margin: 0; padding: 0; }
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      font-size: 14px;
-      line-height: 1.4;
-    }
-    header {
-      background: #003366;
-      color: #fff;
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    body, h1, h2, h3, input, button, video, canvas { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body { background: #f2f2f2; font-size: 14px; line-height: 1.4; }
+    header { background: #003366; color: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
     header h1 { font-size: 18px; }
-    header button {
-      background: #ff4444;
-      border: none;
-      padding: 5px 12px;
-      color: #fff;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    nav {
-      display: flex;
-      background: #ddd;
-    }
-    nav button {
-      flex: 1;
-      padding: 8px;
-      border: none;
-      font-size: 13px;
-      cursor: pointer;
-      background: #bbb;
-    }
-    nav button.active {
-      background: #003366;
-      color: #fff;
-    }
-    main {
-      padding: 10px;
-    }
-    /* Tabs */
+    header button { background: #ff4444; border: none; padding: 5px 12px; color: #fff; border-radius: 4px; cursor: pointer; }
+    nav { display: flex; background: #ddd; }
+    nav button { flex: 1; padding: 8px; border: none; font-size: 13px; cursor: pointer; background: #bbb; }
+    nav button.active { background: #003366; color: #fff; }
+    main { padding: 10px; }
     .tab { display: none; }
     .tab.active { display: block; }
-    .form-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .form-left, .form-right { flex: 1; min-width: 280px; }
-    .form-group { margin-bottom: 8px; }
-    .tab-section {
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    input, button { width: 100%; padding: 7px; font-size: 13px; }
-    .user-cards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .user-card {
-      background: #fff;
-      padding: 10px;
-      border-radius: 6px;
-      box-shadow: 0 0 4px rgba(0,0,0,0.1);
-      width: 260px;
-      font-size: 13px;
-    }
-    .user-card img { width: 100%; border-radius: 4px; margin-top: 6px; }
-    #noUsers { font-style: italic; margin-top: 10px; }
+    .section { background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 12px; margin-bottom: 12px; }
+    .section h2 { margin-bottom: 8px; color: #004080; }
+    .field-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+    .field-group label { flex: 0 0 140px; font-weight: bold; }
+    .field-group input { flex: 1; padding: 6px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
+    .capture-row { display: flex; gap: 12px; margin-top: 8px; }
+    .capture-block { background: #fafafa; padding: 8px; border: 1px solid #ddd; border-radius: 4px; flex: 1; text-align: center; }
+    .capture-block video, .capture-block img, .capture-block canvas { width: 100%; max-height: 180px; border-radius: 4px; }
+    .capture-block button { margin-top: 6px; padding: 6px 10px; border: none; background: #004080; color: #fff; border-radius: 4px; cursor: pointer; }
+    .capture-block button:hover { background: #0066cc; }
+    .action-row { text-align: right; margin-top: 12px; }
+    .action-row button { padding: 8px 14px; margin-left: 8px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; }
+    .btn-save { background: #28a745; color: #fff; }
+    .btn-clear { background: #dc3545; color: #fff; }
   </style>
 </head>
 <body>
@@ -93,64 +38,109 @@
     <h1>PRTU Dashboard</h1>
     <button onclick="logout()">Logout</button>
   </header>
-
   <nav>
-    <button class="active" onclick="switchTab('addTab', this)">Add/Edit User</button>
-    <button onclick="switchTab('logsTab', this)">View Logs</button>
+    <button class="active" onclick="switchTab('formTab', this)">Fill Sale Deed</button>
+    <button onclick="switchTab('logsTab', this)">View Saved</button>
   </nav>
-
   <main>
-    <!-- Add/Edit User Tab -->
-    <div id="addTab" class="tab active">
-      <h2 id="form-title">Add New User</h2>
-      <div class="form-row">
-        <!-- Left: User Details -->
-        <div class="form-left">
-          <!-- Full list of user fields -->
-          <div class="form-group"><input id="name" placeholder="Full Name" /></div>
-          <div class="form-group"><input id="age" type="number" placeholder="Age" /></div>
-          <div class="form-group"><input id="occupation" placeholder="Occupation" /></div>
-          <div class="form-group"><input id="address" placeholder="Address" /></div>
-          <div class="form-group"><input id="contact" placeholder="Contact Number" /></div>
-          <div class="form-group"><input id="idNumber" placeholder="Identification Number" /></div>
-          <div class="form-group"><input id="documentNumber" placeholder="Document Number" /></div>
-          <div class="form-group"><input id="notarySrNo" placeholder="Notary Sr. No." /></div>
-          <div class="form-group"><input id="documentType" placeholder="Type of Document" /></div>
-          <div class="form-group"><input id="executingParties" placeholder="Executing Parties" /></div>
-          <div class="form-group"><input id="propertyAddress" placeholder="Property Address" /></div>
-          <div class="form-group"><input id="propertyValue" placeholder="Property Value" /></div>
-          <div class="form-group">
-            <button onclick="saveUser()">Save</button>
-            <button type="button" onclick="clearForm()">Clear</button>
+    <!-- Form Tab -->
+    <div id="formTab" class="tab active">
+      <!-- Document Metadata Section -->
+      <div class="section">
+        <h2>Document Metadata</h2>
+        <div class="field-group"><label>Document Number:</label><input id="documentNumberTop" placeholder="Document Number" /></div>
+        <div class="field-group"><label>Notary Reg. Sr. No.:</label><input id="notarySrNoTop" placeholder="Notary Registered Sr. No." /></div>
+        <div class="field-group"><label>Type of Document:</label><input id="documentTypeTop" placeholder="Type of Document" /></div>
+      </div>
+      <!-- Purchaser Section -->
+      <div class="section">
+        <h2>Executing Parties — Purchaser</h2>
+        <div class="field-group"><label>Name:</label><input id="purchaserName" placeholder="Full Name" /></div>
+        <div class="field-group"><label>Age:</label><input id="purchaserAge" type="number" /></div>
+        <div class="field-group"><label>Occupation:</label><input id="purchaserOccupation" /></div>
+        <div class="field-group"><label>Residing At:</label><input id="purchaserAddress" placeholder="Address" /></div>
+        <div class="field-group"><label>Contact No.:</label><input id="purchaserContact" /></div>
+        <div class="field-group"><label>Identification:</label><input id="purchaserIdNumber" /></div>
+        <div class="capture-row">
+          <div class="capture-block">
+            <strong>Photo</strong>
+            <video id="videoP" autoplay muted playsinline onclick="takePhoto('P')"></video>
+            <canvas id="canvasP" style="display:none"></canvas>
+            <button onclick="showVideo('P')">Capture Photo</button>
           </div>
-        </div>
-        <!-- Right: Photo & Fingerprint -->
-        <div class="form-right">
-          <div class="tab-section">
-            <label><strong>Click on video to capture photo</strong></label>
-            <video id="video" autoplay muted playsinline onclick="takePhoto()"></video>
-            <canvas id="canvas"></canvas>
-          </div>
-          <div class="tab-section">
-            <label><strong>Fingerprint Capture</strong></label>
-            <button type="button" onclick="captureFingerprint()">Capture Thumb</button>
-            <img id="fingerprintPreview" class="fingerprint-preview" />
+          <div class="capture-block">
+            <strong>Thumb Impression</strong>
+            <button onclick="captureFingerprint('P')">Capture Thumb</button>
+            <img id="thumbP" style="display:none; margin-top:6px;" />
           </div>
         </div>
       </div>
+      <!-- Seller Section -->
+      <div class="section">
+        <h2>Executing Parties — Seller</h2>
+        <div class="field-group"><label>Name:</label><input id="sellerName" /></div>
+        <div class="field-group"><label>Age:</label><input id="sellerAge" type="number" /></div>
+        <div class="field-group"><label>Occupation:</label><input id="sellerOccupation" /></div>
+        <div class="field-group"><label>Residing At:</label><input id="sellerAddress" /></div>
+        <div class="field-group"><label>Contact No.:</label><input id="sellerContact" /></div>
+        <div class="field-group"><label>Identification:</label><input id="sellerIdNumber" /></div>
+        <div class="capture-row">
+          <div class="capture-block">
+            <strong>Photo</strong>
+            <video id="videoS" autoplay muted playsinline onclick="takePhoto('S')"></video>
+            <canvas id="canvasS" style="display:none"></canvas>
+            <button onclick="showVideo('S')">Capture Photo</button>
+          </div>
+          <div class="capture-block">
+            <strong>Thumb Impression</strong>
+            <button onclick="captureFingerprint('S')">Capture Thumb</button>
+            <img id="thumbS" style="display:none; margin-top:6px;" />
+          </div>
+        </div>
+      </div>
+      <!-- Witness Section -->
+      <div class="section">
+        <h2>Witness</h2>
+        <div class="field-group"><label>Name:</label><input id="witnessName" /></div>
+        <div class="field-group"><label>Age:</label><input id="witnessAge" type="number" /></div>
+        <div class="field-group"><label>Occupation:</label><input id="witnessOccupation" /></div>
+        <div class="field-group"><label>Residing At:</label><input id="witnessAddress" /></div>
+        <div class="field-group"><label>Contact No.:</label><input id="witnessContact" /></div>
+        <div class="field-group"><label>Identification:</label><input id="witnessIdNumber" /></div>
+        <div class="capture-row">
+          <div class="capture-block">
+            <strong>Photo</strong>
+            <video id="videoW" autoplay muted playsinline onclick="takePhoto('W')"></video>
+            <canvas id="canvasW" style="display:none"></canvas>
+            <button onclick="showVideo('W')">Capture Photo</button>
+          </div>
+          <div class="capture-block">
+            <strong>Thumb Impression</strong>
+            <button onclick="captureFingerprint('W')">Capture Thumb</button>
+            <img id="thumbW" style="display:none; margin-top:6px;" />
+          </div>
+        </div>
+      </div>
+      <!-- Document Details Section -->
+      <div class="section">
+        <h2>Document Details</h2>
+        <div class="field-group"><label>Schedule of Property:</label><input id="scheduleOfProperty" placeholder="e.g. At Umbarhne, Survey No. ..." /></div>
+        <div class="field-group"><label>Consideration:</label><input id="consideration" placeholder="Total Consideration of Rs ..." /></div>
+      </div>
+      <!-- Actions -->
+      <div class="action-row">
+        <button class="btn-clear" onclick="clearForm()">Clear</button>
+        <button class="btn-save" onclick="saveSaleDeed()">Save Sale Deed</button>
+      </div>
     </div>
-
     <!-- Logs Tab -->
     <div id="logsTab" class="tab">
-      <h2>Saved Users</h2>
-      <div id="noUsers" style="display:none;">No users found.</div>
+      <h2>Saved Documents</h2>
+      <div id="noUsers" style="font-style:italic;">No records found.</div>
       <div class="user-cards" id="userCards"></div>
     </div>
   </main>
-
   <script>
-    let editingUser = null;
-
     function switchTab(tabId, btn) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
@@ -158,115 +148,62 @@
       btn.classList.add('active');
       if (tabId === 'logsTab') loadUsers();
     }
-
-    function logout() {
-      window.location.href = 'login.html';
-    }
-
+    function logout() { window.location.href = 'login.html'; }
     function clearForm() {
-      editingUser = null;
-      document.getElementById('form-title').innerText = 'Add New User';
-      document.querySelectorAll('#addTab input').forEach(i => i.value = '');
-      document.getElementById('canvas').style.display = 'none';
-      document.getElementById('fingerprintPreview').style.display = 'none';
+      document.querySelectorAll('#formTab input').forEach(i => i.value = '');
+      document.querySelectorAll('canvas').forEach(c => c.style.display='none');
+      document.querySelectorAll('.capture-block img').forEach(i => i.style.display='none');
     }
-
-    async function saveUser() {
-      const photoData = document.getElementById('canvas').toDataURL('image/png');
-      const thumbData = document.getElementById('fingerprintPreview').src || '';
+    async function saveSaleDeed() {
       const payload = {
-        id: editingUser?.id || Date.now(),
-        name: document.getElementById('name').value,
-        age: document.getElementById('age').value,
-        occupation: document.getElementById('occupation').value,
-        address: document.getElementById('address').value,
-        contact: document.getElementById('contact').value,
-        idNumber: document.getElementById('idNumber').value,
-        documentNumber: document.getElementById('documentNumber').value,
-        notarySrNo: document.getElementById('notarySrNo').value,
-        documentType: document.getElementById('documentType').value,
-        executingParties: document.getElementById('executingParties').value,
-        propertyAddress: document.getElementById('propertyAddress').value,
-        propertyValue: document.getElementById('propertyValue').value,
-        photoData,
-        thumbData
+        id: Date.now(),
+        metaDocumentNumber: document.getElementById('documentNumberTop').value,
+        metaNotarySrNo: document.getElementById('notarySrNoTop').value,
+        metaDocumentType: document.getElementById('documentTypeTop').value,
+        purchaserName: document.getElementById('purchaserName').value,
+        purchaserAge: document.getElementById('purchaserAge').value,
+        purchaserOccupation: document.getElementById('purchaserOccupation').value,
+        purchaserAddress: document.getElementById('purchaserAddress').value,
+        purchaserContact: document.getElementById('purchaserContact').value,
+        purchaserIdNumber: document.getElementById('purchaserIdNumber').value,
+        photoP: document.getElementById('canvasP').toDataURL('image/png'),
+        thumbP: document.getElementById('thumbP').src,
+        sellerName: document.getElementById('sellerName').value,
+        sellerAge: document.getElementById('sellerAge').value,
+        sellerOccupation: document.getElementById('sellerOccupation').value,
+        sellerAddress: document.getElementById('sellerAddress').value,
+        sellerContact: document.getElementById('sellerContact').value,
+        sellerIdNumber: document.getElementById('sellerIdNumber').value,
+        photoS: document.getElementById('canvasS').toDataURL('image/png'),
+        thumbS: document.getElementById('thumbS').src,
+        witnessName: document.getElementById('witnessName').value,
+        witnessAge: document.getElementById('witnessAge').value,
+        witnessOccupation: document.getElementById('witnessOccupation').value,
+        witnessAddress: document.getElementById('witnessAddress').value,
+        witnessContact: document.getElementById('witnessContact').value,
+        witnessIdNumber: document.getElementById('witnessIdNumber').value,
+        photoW: document.getElementById('canvasW').toDataURL('image/png'),
+        thumbW: document.getElementById('thumbW').src,
+        scheduleOfProperty: document.getElementById('scheduleOfProperty').value,
+        consideration: document.getElementById('consideration').value
       };
-
       try {
-        const url = editingUser ? '/update-user' : '/add-user';
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        alert(data.message);
-        clearForm();
-        switchTab('logsTab', document.querySelectorAll('nav button')[1]);
-      } catch (err) {
-        console.error(err);
-        alert('Failed to save user.');
-      }
+        const res = await fetch('/add-user',{ method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        const data = await res.json(); alert(data.message); clearForm();
+      } catch { alert('Failed to save'); }
     }
-
-    async function loadUsers() {
-      try {
-        const res = await fetch('/get-users');
-        const users = await res.json();
-        const container = document.getElementById('userCards');
-        const noUsers = document.getElementById('noUsers');
-        container.innerHTML = '';
-        if (!users.length) return noUsers.style.display = 'block';
-        noUsers.style.display = 'none';
-        users.forEach(u => {
-          const card = document.createElement('div');
-          card.className = 'user-card';
-          card.innerHTML = `
-            <h3>${u.name}</h3>
-            <p><strong>Age:</strong> ${u.age}</p>
-            <p><strong>Contact:</strong> ${u.contact}</p>
-            <p><strong>ID:</strong> ${u.idNumber}</p>
-            ${u.photoData ? `<img src="${u.photoData}" alt="Photo">` : ''}
-            <button onclick='startEdit(${encodeURIComponent(JSON.stringify(u))})'>Edit</button>
-            <button onclick='deleteUser(${u.id})'>Delete</button>
-          `;
-          container.appendChild(card);
-        });
-      } catch (e) {
-        alert('Error loading users');
-      }
+    function takePhoto(role) {
+      const v=document.getElementById('video'+role),c=document.getElementById('canvas'+role);
+      c.width=v.videoWidth; c.height=v.videoHeight;
+      c.getContext('2d').drawImage(v,0,0); c.style.display='block';
     }
-
-    function startEdit(encoded) {
-      const user = JSON.parse(decodeURIComponent(encoded));
-      switchTab('addTab', document.querySelectorAll('nav button')[0]);
-      editingUser = user;
-      document.getElementById('form-title').innerText = 'Edit User';
-      Object.keys(user).forEach(key => {
-        if (document.getElementById(key)) document.getElementById(key).value = user[key] || '';
-      });
-      if (user.photoData) {
-        const img = new Image(); img.src = user.photoData;
-        img.onload = () => { const c = document.getElementById('canvas'); c.width = img.width; c.height = img.height; c.getContext('2d').drawImage(img,0,0); c.style.display='block'; };
-      }
-      if (user.thumbData) {
-        const fp = document.getElementById('fingerprintPreview'); fp.src = user.thumbData; fp.style.display='block';
-      }
+    function showVideo(role) { document.getElementById('canvas'+role).style.display='none'; }
+    function captureFingerprint(role) {
+      if(!window.CaptureFinger) return alert('SDK not running');
+      CaptureFinger(true, res=>{ const img=document.getElementById('thumb'+role); img.src='data:image/bmp;base64,'+res.BitmapData; img.style.display='block'; }, e=>alert(e));
     }
-
-    async function deleteUser(id) {
-      if (!confirm('Delete?')) return;
-      await fetch('/delete-user',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id}) });
-      loadUsers();
-    }
-
-    function captureFingerprint() {
-      if (!window.CaptureFinger) return alert('SDK not running');
-      CaptureFinger(true, res=>{ const img=document.getElementById('fingerprintPreview'); img.src='data:image/bmp;base64,'+res.BitmapData; img.style.display='block'; }, e=>alert(e));
-    }
-
-    navigator.mediaDevices.getUserMedia({video:true}).then(s=>{document.getElementById('video').srcObject=s}).catch(()=>{});
-    function takePhoto(){ const v=document.getElementById('video'),c=document.getElementById('canvas');c.width=v.videoWidth; c.height=v.videoHeight; c.getContext('2d').drawImage(v,0,0); c.style.display='block'; }
+    ['P','S','W'].forEach(r=>navigator.mediaDevices.getUserMedia({video:true}).then(s=>document.getElementById('video'+r).srcObject=s).catch(console.warn));
+    async function loadUsers() { const res=await fetch('/get-users'); const users=await res.json(); const cont=document.getElementById('userCards'); cont.innerHTML=''; if(!users.length) return document.getElementById('noUsers').style.display='block'; document.getElementById('noUsers').style.display='none'; users.forEach(u=>{ const card=document.createElement('div'); card.className='user-cards'; card.textContent=JSON.stringify(u); cont.appendChild(card); }); }
   </script>
 </body>
 </html>
