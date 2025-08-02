@@ -1,57 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>All Sale Deeds - PRTU</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      padding: 20px;
-      margin: 0;
-    }
-    h2 {
-      text-align: center;
-      color: #004080;
-      margin-bottom: 20px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-    }
-    th,
-    td {
-      padding: 8px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-      vertical-align: top;
-    }
-    th {
-      background: #004080;
-      color: #fff;
-    }
-    img.thumb {
-      width: 60px;
-      height: auto;
-      border-radius: 4px;
-    }
-    .actions button {
-      padding: 6px 10px;
-      margin: 2px;
-      font-size: 12px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .actions .edit-btn { background: #28a745; color: #fff; }
-    .actions .delete-btn { background: #dc3545; color: #fff; }
-    .no-records {
-      text-align: center;
-      font-style: italic;
-      padding: 20px;
-    }
+    body { font-family: Arial, sans-serif; background: #f2f2f2; margin:0; padding:20px; }
+    h2 { text-align:center; color:#004080; margin-bottom:16px; }
+    table { width:100%; border-collapse:collapse; background:#fff; }
+    th, td { padding:8px; border:1px solid #ccc; font-size:14px; vertical-align:top; }
+    th { background:#004080; color:#fff; }
+    img.thumb { width:60px; height:auto; border-radius:4px; }
+    .actions button { margin:2px; padding:6px 10px; font-size:12px; border:none; border-radius:4px; cursor:pointer; }
+    .edit-btn { background:#28a745; color:#fff; }
+    .delete-btn { background:#dc3545; color:#fff; }
+    .no-records { text-align:center; font-style:italic; padding:20px; }
   </style>
 </head>
 <body>
@@ -59,13 +22,13 @@
   <table id="recordsTable">
     <thead>
       <tr>
-        <th>Document No.</th>
+        <th>Doc No.</th>
         <th>Notary Sr. No.</th>
-        <th>Document Type</th>
+        <th>Doc Type</th>
         <th>Purchaser</th>
         <th>Seller</th>
         <th>Witness</th>
-        <th>Schedule of Property</th>
+        <th>Schedule</th>
         <th>Consideration</th>
         <th>Photo (P)</th>
         <th>Thumb (P)</th>
@@ -76,21 +39,26 @@
   </table>
 
   <script>
-    // Fetch and render all saved sale deeds
     async function loadRecords() {
       const tbody = document.querySelector('#recordsTable tbody');
       tbody.innerHTML = '';
+
       try {
-        const response = await fetch('/get-users');
-        const records = await response.json();
+        const res = await fetch('/get-users');
+        const records = await res.json();
+
         if (!records.length) {
-          tbody.innerHTML = '<tr><td colspan="11" class="no-records">No records found.</td></tr>';
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="11" class="no-records">No records found.</td>
+            </tr>`;
           return;
         }
-        for (const r of records) {
+
+        records.forEach(r => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td>${r.metaDocumentNumber || '—'}</td>
+            <td>${r.metaDocumentNumber  || '—'}</td>
             <td>${r.metaNotarySrNo      || '—'}</td>
             <td>${r.metaDocumentType    || '—'}</td>
             <td>${r.purchaserName       || '—'}</td>
@@ -98,45 +66,50 @@
             <td>${r.witnessName         || '—'}</td>
             <td>${r.scheduleOfProperty  || '—'}</td>
             <td>${r.consideration       || '—'}</td>
-            <td>${r.photoP   ? `<img src="${r.photoP}" class="thumb" alt="Photo">` : '—'}</td>
-            <td>${r.thumbP   ? `<img src="${r.thumbP}" class="thumb" alt="Thumb">` : '—'}</td>
+            <td>${r.photoP 
+                ? `<img src="${r.photoP}" class="thumb" alt="Photo">` 
+                : '—'}</td>
+            <td>${r.thumbP 
+                ? `<img src="${r.thumbP}" class="thumb" alt="Thumb">` 
+                : '—'}</td>
             <td class="actions">
               <button class="edit-btn" onclick="editRecord(${r.id})">Edit</button>
               <button class="delete-btn" onclick="deleteRecord(${r.id})">Delete</button>
-            </td>
-          `;
+            </td>`;
           tbody.appendChild(tr);
-        }
-      } catch (error) {
-        console.error('Error loading records:', error);
-        tbody.innerHTML = '<tr><td colspan="11" class="no-records">Error loading records.</td></tr>';
+        });
+
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="11" class="no-records">Error loading records.</td>
+          </tr>`;
       }
     }
 
-    // Navigate to dashboard for editing
     function editRecord(id) {
+      // Redirect to dashboard.html with ?edit=<id>
       window.location.href = `dashboard.html?edit=${id}`;
     }
 
-    // Delete a record and refresh the list
     async function deleteRecord(id) {
-      if (!confirm('Are you sure you want to delete this record?')) return;
+      if (!confirm('Delete this record?')) return;
       try {
         const res = await fetch('/delete-user', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ id })
         });
         const data = await res.json();
         alert(data.message);
         loadRecords();
-      } catch (err) {
-        console.error('Deletion failed:', err);
+      } catch {
         alert('Deletion failed');
       }
     }
 
-    // Initialize on page load
+    // Kick things off when the page loads
     document.addEventListener('DOMContentLoaded', loadRecords);
   </script>
 </body>
