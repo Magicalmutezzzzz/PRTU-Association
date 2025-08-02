@@ -1,23 +1,21 @@
-// ==========================
-// 📦 Dependencies & Config
-// ==========================
+// server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
-const app = express();
-const PORT = 3000;
 require('dotenv').config();
 
-// ==========================
-// 🌐 MongoDB Connection
-// ==========================
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ Connected to MongoDB Atlas"))
-  .catch(err => console.error("❌ MongoDB connection error:", err));
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-// ==========================
-// 🧬 User Schema (includes image binary)
-// ==========================
+// Connect to MongoDB Atlas
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('✅ Connected to MongoDB Atlas'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
+
+// User schema with image buffers
 const userSchema = new mongoose.Schema({
   id: Number,
   name: String,
@@ -26,16 +24,14 @@ const userSchema = new mongoose.Schema({
   address: String,
   contact: String,
   idNumber: String,
-
   photo: {
-     Buffer,
+    data: Buffer,
     contentType: String
   },
   thumbImg: {
-     Buffer,
+    data: Buffer,
     contentType: String
   },
-
   documentNumber: String,
   notarySrNo: String,
   documentType: String,
@@ -43,82 +39,67 @@ const userSchema = new mongoose.Schema({
   propertyAddress: String,
   propertyValue: String
 });
-
 const User = mongoose.model('User', userSchema);
 
-// ==========================
-// 🔧 Middleware
-// ==========================
+// Middleware
 app.use(express.json({ limit: '20mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ==========================
-// ♻️ Helpers: Base64 to Buffer
-// ==========================
+// Helper: base64 data URI -> buffer & contentType
 function parseBase64Image(dataURL) {
-  const matches = dataURL.match(/^(.+);base64,(.+)$/);
+  const matches = dataURL.match(/^data:(.+);base64,(.+)$/);
   if (!matches) return null;
   return {
     contentType: matches[1],
-    buffer: Buffer.from(matches[2], 'base64')
+    data: Buffer.from(matches[2], 'base64')
   };
 }
 
-// ==========================
-// 📡 API Routes
-// ==========================
-
-// 🧾 GET all users
+// GET all users
 app.get('/get-users', async (req, res) => {
   try {
     const users = await User.find();
-
-    // 🔁 Convert binary photo/fingerprint back to data URI
-    const safeUsers = users.map(user => {
-      const copy = user.toObject();
-      if (user.photo?.data) {
-        copy.photoData = `${user.photo.contentType};base64,${user.photo.data.toString('base64')}`;
+    const safe = users.map(u => {
+      const obj = u.toObject();
+      if (u.photo && u.photo.data) {
+        obj.photoData = `data:${u.photo.contentType};base64,${u.photo.data.toString('base64')}`;
       }
-      if (user.thumbImg?.data) {
-        copy.thumbData = `${user.thumbImg.contentType};base64,${user.thumbImg.data.toString('base64')}`;
+      if (u.thumbImg && u.thumbImg.data) {
+        obj.thumbData = `data:${u.thumbImg.contentType};base64,${u.thumbImg.data.toString('base64')}`;
       }
-      delete copy.photo;
-      delete copy.thumbImg;
-      return copy;
+      delete obj.photo;
+      delete obj.thumbImg;
+      return obj;
     });
-
-    res.json(safeUsers);
+    res.json(safe);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: '❌ Failed to fetch users' });
   }
 });
 
-// ➕ POST: Add new user
+// POST add user
 app.post('/add-user', async (req, res) => {
   try {
     const photoParsed = parseBase64Image(req.body.photoData || '');
     const thumbParsed = parseBase64Image(req.body.thumbData || '');
-
     const newUser = new User({
-      id: req.body.id || Date.now(),
-      name: req.body.name || "",
-      age: req.body.age || "",
-      occupation: req.body.occupation || "",
-      address: req.body.address || "",
-      contact: req.body.contact || "",
-      idNumber: req.body.idNumber || "",
-
-      photo: photoParsed || undefined,
-      thumbImg: thumbParsed || undefined,
-
-      documentNumber: req.body.documentNumber || "",
-      notarySrNo: req.body.notarySrNo || "",
-      documentType: req.body.documentType || "",
-      executingParties: req.body.executingParties || "",
-      propertyAddress: req.body.propertyAddress || "",
-      propertyValue: req.body.propertyValue || ""
+      id: req.body.id,
+      name: req.body.name,
+      age: req.body.age,
+      occupation: req.body.occupation,
+      address: req.body.address,
+      contact: req.body.contact,
+      idNumber: req.body.idNumber,
+      photo: photoParsed,
+      thumbImg: thumbParsed,
+      documentNumber: req.body.documentNumber,
+      notarySrNo: req.body.notarySrNo,
+      documentType: req.body.documentType,
+      executingParties: req.body.executingParties,
+      propertyAddress: req.body.propertyAddress,
+      propertyValue: req.body.propertyValue
     });
-
     await newUser.save();
     res.json({ message: '✅ User added successfully' });
   } catch (err) {
@@ -127,13 +108,12 @@ app.post('/add-user', async (req, res) => {
   }
 });
 
-// ✏️ POST: Update user
+// POST update user
 app.post('/update-user', async (req, res) => {
   try {
     const photoParsed = parseBase64Image(req.body.photoData || '');
     const thumbParsed = parseBase64Image(req.body.thumbData || '');
-
-    const updatedFields = {
+    const fields = {
       name: req.body.name,
       age: req.body.age,
       occupation: req.body.occupation,
@@ -147,51 +127,32 @@ app.post('/update-user', async (req, res) => {
       propertyAddress: req.body.propertyAddress,
       propertyValue: req.body.propertyValue
     };
-
-    if (photoParsed) updatedFields.photo = photoParsed;
-    if (thumbParsed) updatedFields.thumbImg = thumbParsed;
-
-    const updated = await User.findOneAndUpdate(
-      { id: req.body.id },
-      updatedFields,
-      { new: true }
-    );
-
-    if (updated) {
-      res.json({ message: '✏️ User updated successfully' });
-    } else {
-      res.status(404).json({ message: '❌ User not found' });
-    }
+    if (photoParsed) fields.photo = photoParsed;
+    if (thumbParsed) fields.thumbImg = thumbParsed;
+    const updated = await User.findOneAndUpdate({ id: req.body.id }, fields, { new: true });
+    if (updated) res.json({ message: '✏️ User updated successfully' });
+    else res.status(404).json({ message: '❌ User not found' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: '❌ Failed to update user' });
   }
 });
 
-// ❌ POST: Delete user
+// POST delete user
 app.post('/delete-user', async (req, res) => {
   try {
-    const deleted = await User.findOneAndDelete({ id: req.body.id });
-    if (deleted) {
-      res.json({ message: '🗑️ User deleted successfully' });
-    } else {
-      res.status(404).json({ message: '❌ User not found for deletion' });
-    }
+    const del = await User.findOneAndDelete({ id: req.body.id });
+    if (del) res.json({ message: '🗑️ User deleted successfully' });
+    else res.status(404).json({ message: '❌ User not found' });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: '❌ Failed to delete user' });
   }
 });
 
-// ==========================
-// 🌐 Serve Frontend
-// ==========================
+// Serve landing page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ==========================
-// 🚀 Start Server
-// ==========================
-app.listen(PORT, () => {
-  console.log(`✅ Server running at: http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
