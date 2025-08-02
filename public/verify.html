@@ -2,25 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Verify & Print User</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verify & Print User - PRTU</title>
+  <!-- Styles for verification and print -->
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f3f6f8;
-      margin: 0;
-      padding: 20px;
-    }
-
-    h2 {
-      text-align: center;
-      color: #003366;
-    }
-
+    body { font-family: Arial, sans-serif; background: #f3f6f8; margin: 0; padding: 20px; }
+    h2 { text-align: center; color: #003366; }
     .flash-msg {
       display: none;
       text-align: center;
-      background-color: #ffe5e5;
+      background: #ffe5e5;
       color: #cc0000;
       font-weight: bold;
       padding: 10px;
@@ -29,7 +20,6 @@
       margin: 10px auto;
       max-width: 400px;
     }
-
     form {
       max-width: 400px;
       margin: 0 auto;
@@ -38,33 +28,26 @@
       border-radius: 8px;
       box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
-
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-
+    label { display: block; margin-top: 10px; font-weight: bold; }
     input {
       width: 100%;
       padding: 8px;
       margin-top: 5px;
       border-radius: 4px;
       border: 1px solid #ccc;
+      font-size: 14px;
     }
-
     button {
       margin-top: 15px;
       padding: 10px;
-      background-color: #003366;
-      color: white;
+      background: #003366;
+      color: #fff;
       border: none;
       width: 100%;
       border-radius: 4px;
       font-size: 15px;
       cursor: pointer;
     }
-
     #result {
       display: none;
       max-width: 900px;
@@ -74,64 +57,27 @@
       border-radius: 8px;
       border: 1px solid #ccc;
     }
-
     .section {
       border: 1px solid #999;
       padding: 15px;
       margin-bottom: 15px;
     }
-
     .section h3 {
-      margin-top: 0;
+      margin: 0;
       background: #003366;
-      color: white;
+      color: #fff;
       padding: 5px;
       font-size: 16px;
     }
-
-    .field {
-      margin-bottom: 10px;
-    }
-
-    .photo-box {
-      display: flex;
-      gap: 30px;
-      margin-top: 10px;
-    }
-
-    .photo-box div {
-      text-align: center;
-    }
-
-    .photo-box img {
-      width: 120px;
-      height: auto;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-
-    #printBtn {
-      background: green;
-      font-weight: bold;
-    }
-
+    .field { margin-bottom: 10px; }
+    .photo-box { display: flex; gap: 30px; margin-top: 10px; }
+    .photo-box div { text-align: center; }
+    .photo-box img { width: 120px; height: auto; border-radius: 4px; border: 1px solid #ccc; }
+    #printBtn { background: green; font-weight: bold; }
     @media print {
-      form, #printBtn, .flash-msg {
-        display: none !important;
-      }
-
-      #result {
-        border: none;
-        box-shadow: none;
-        margin: 0;
-        padding: 0;
-      }
-
-      body {
-        background: white;
-        padding: 0;
-        margin: 0;
-      }
+      form, #printBtn, .flash-msg { display: none !important; }
+      #result { border: none; box-shadow: none; margin: 0; padding: 0; }
+      body { background: #fff; padding: 0; }
     }
   </style>
 </head>
@@ -139,14 +85,14 @@
 
   <h2>Verify User Details</h2>
 
-  <div id="flashMessage" class="flash-msg">❌ Incorrect credentials. Please try again.</div>
+  <div id="flashMessage" class="flash-msg">❌ Invalid credentials. Please try again.</div>
 
   <form onsubmit="verifyUser(event)">
     <label>Contact Number:</label>
-    <input type="text" id="contact" required>
+    <input type="text" id="contact" required />
 
     <label>Identification Number:</label>
-    <input type="text" id="idNumber" required>
+    <input type="text" id="idNumber" required />
 
     <button type="submit">Verify</button>
   </form>
@@ -159,77 +105,54 @@
   <script>
     async function verifyUser(e) {
       e.preventDefault();
-
       const contact = document.getElementById('contact').value.trim();
-      const idNumber = document.getElementById('idNumber').value.trim();
+      const idNum = document.getElementById('idNumber').value.trim();
+      const flash = document.getElementById('flashMessage');
       const resultDiv = document.getElementById('result');
-      const userDetails = document.getElementById('userDetails');
-      const flashMessage = document.getElementById('flashMessage');
-
-      // Hide result and flashMessage before new attempt
+      const details = document.getElementById('userDetails');
+      flash.style.display = 'none';
       resultDiv.style.display = 'none';
-      flashMessage.style.display = 'none';
-
       try {
         const res = await fetch('/get-users');
         const users = await res.json();
-
-        const match = users.find(u => u.contact === contact && u.idNumber === idNumber);
-
-        if (match) {
-          resultDiv.style.display = 'block';
-          document.getElementById('printBtn').style.display = 'inline-block';
-
-          userDetails.innerHTML = `
-            <div class="section">
-              <h3>Parties Info</h3>
-              <div class="field"><strong>Name:</strong> ${match.name}</div>
-              <div class="field"><strong>Age:</strong> ${match.age}</div>
-              <div class="field"><strong>Occupation:</strong> ${match.occupation}</div>
-              <div class="field"><strong>Address:</strong> ${match.address}</div>
-              <div class="field"><strong>Contact:</strong> ${match.contact}</div>
-              <div class="field"><strong>Identification Number:</strong> ${match.idNumber}</div>
-            </div>
-
-            <div class="section">
-              <h3>Document Info</h3>
-              <div class="field"><strong>Document Number:</strong> ${match.documentNumber || '—'}</div>
-              <div class="field"><strong>Notary Registered Sr No:</strong> ${match.notarySrNo || '—'}</div>
-              <div class="field"><strong>Type of Document:</strong> ${match.documentType || '—'}</div>
-              <div class="field"><strong>Executing Parties:</strong> ${match.executingParties || '—'}</div>
-              <div class="field"><strong>Property Address:</strong> ${match.propertyAddress || '—'}</div>
-              <div class="field"><strong>Property Value:</strong> ${match.propertyValue || '—'}</div>
-            </div>
-
-            <div class="section">
-              <h3>Biometric Details</h3>
-              <div class="photo-box">
-                <div>
-                  <div><strong>Photo</strong></div>
-                  <img src="${match.photo}" alt="Photo">
-                </div>
-                <div>
-                  <div><strong>Thumb Impression</strong></div>
-                  <img src="${match.thumbImg}" alt="Fingerprint">
-                </div>
-              </div>
-            </div>
-          `;
-        } else {
-          flashMessage.style.display = 'block';
-          setTimeout(() => { flashMessage.style.display = 'none'; }, 3000);
+        const user = users.find(u => u.contact === contact && u.idNumber === idNum);
+        if (!user) {
+          flash.textContent = '❌ No matching user found.';
+          flash.style.display = 'block';
+          return;
         }
+        // Populate results
+        let html = '';
+        // Parties Info
+        html += `<div class="section"><h3>Parties Info</h3>`;
+        ['name','age','occupation','address','contact','idNumber'].forEach(f => {
+          html += `<div class="field"><strong>${f.charAt(0).toUpperCase()+f.slice(1)}:</strong> ${user[f]||'—'}</div>`;
+        });
+        html += `</div>`;
+        // Document Info
+        html += `<div class="section"><h3>Document Info</h3>`;
+        ['documentNumber','notarySrNo','documentType','executingParties','propertyAddress','propertyValue'].forEach(f => {
+          html += `<div class="field"><strong>${f.replace(/([A-Z])/g,' $1')}:</strong> ${user[f]||'—'}</div>`;
+        });
+        html += `</div>`;
+        // Biometric Details
+        html += `<div class="section"><h3>Biometric Details</h3><div class="photo-box">`;
+        html += `<div><strong>Photo</strong><br><img src="${user.photoData}" alt="Photo"></div>`;
+        html += `<div><strong>Thumb Impression</strong><br><img src="${user.thumbData}" alt="Fingerprint"></div>`;
+        html += `</div></div>`;
+        details.innerHTML = html;
+        resultDiv.style.display = 'block';
       } catch (err) {
-        console.error("Error fetching users:", err);
-        flashMessage.textContent = "Something went wrong. Please try again later.";
-        flashMessage.style.display = 'block';
+        console.error(err);
+        flash.textContent = '❌ An error occurred. Try again later.';
+        flash.style.display = 'block';
       }
     }
 
     function printUser() {
-      const printContent = document.getElementById('result').innerHTML;
       const original = document.body.innerHTML;
-      document.body.innerHTML = printContent;
+      const content = document.getElementById('result').outerHTML;
+      document.body.innerHTML = content;
       window.print();
       document.body.innerHTML = original;
       window.location.reload();
