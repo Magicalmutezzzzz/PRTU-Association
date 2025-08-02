@@ -1,32 +1,45 @@
 // server.js
-// Entry point for PRTU dashboard backend: sets up Express, connects to MongoDB Atlas, and defines CRUD routes.
+// Backend for PRTU dashboard: Express + MongoDB Atlas
 
 // ---------------------
-// Module imports & config
+// 1. Module imports & config
 // ---------------------
 const express = require('express');            // Web framework
 const mongoose = require('mongoose');          // MongoDB ODM
-const path = require('path');                  // Utility for file paths
-require('dotenv').config();                    // Load env vars from .env
+const path = require('path');                  // File path utils
+require('dotenv').config();                    // Load .env variables
 
 // ---------------------
-// App initialization
+// 2. App initialization
 // ---------------------
 const app = express();                         // Create Express app
-const PORT = process.env.PORT || 3000;         // Use env PORT or fallback to 3000
+const PORT = process.env.PORT || 3000;         // Port from env or default
 
 // ---------------------
-// Middleware
+// 3. Middleware setup
 // ---------------------
-// 1. Parse JSON bodies (requests with Content-Type: application/json)
+
+// 3.1. Parse JSON bodies (Content-Type: application/json)
 app.use(express.json({ limit: '20mb' }));
-// 2. Parse URL-encoded bodies (forms, Content-Type: application/x-www-form-urlencoded)
+// 3.2. Parse URL-encoded bodies (forms)
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
-// 3. Serve static assets from "public" folder (HTML/CSS/JS)
+// 3.3. Serve static assets (front-end files)
 app.use(express.static(path.join(__dirname, 'public')));
 
+// 3.4. Capture raw request body (string) for debugging/fallback parsing
+// This runs before any route. Always provides req.rawBody as a string.
+app.use((req, res, next) => {
+  let data = '';
+  req.setEncoding('utf8');
+  req.on('data', chunk => { data += chunk; });
+  req.on('end', () => {
+    req.rawBody = data;
+    next();
+  });
+});
+
 // ---------------------
-// Database connection
+// 4. Database connection
 // ---------------------
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
@@ -36,7 +49,7 @@ mongoose.connect(process.env.MONGO_URI, {
 .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // ---------------------
-// Mongoose schema & model
+// 5. Mongoose schema & model
 // ---------------------
 const userSchema = new mongoose.Schema({
   id: Number,
@@ -64,12 +77,12 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model('User', userSchema);
 
 // ---------------------
-// Helper: parse base64 image data
+// 6. Helper: parse base64 image data URI
 // ---------------------
 function parseBase64Image(dataURL) {
-  // Expect format: "data:<mime>;base64,<data>"
+  // Example dataURL: "data:image/jpeg;base64,/9j/4AAQ..."
   const matches = dataURL.match(/^data:(.+);base64,(.+)$/);
-  if (!matches) return null; // return null if not a valid data URI
+  if (!matches) return null;
   return {
     contentType: matches[1],
     data: Buffer.from(matches[2], 'base64')
@@ -77,11 +90,24 @@ function parseBase64Image(dataURL) {
 }
 
 // ---------------------
-// Routes
+// 7. Route handlers
 // ---------------------
 
-// GET /get-users
-// Fetch all users from DB, convert image buffers back to base64 strings, and return JSON
+// Utility to get parsed body: prefers express-parsed req.body, falls back to rawBody
+function getParsedBody(req) {
+  if (req.body && Object.keys(req.body).length) {
+    return req.body;
+  }
+  try {
+    return JSON.parse(req.rawBody || '{}');
+  } catch (e) {
+    console.warn('Could not parse rawBody:', req.rawBody);
+    return {};
+  }
+}
+
+// 7.1. GET /get-users
+// Fetch users, convert image buffers to base64 data URIs
 app.get('/get-users', async (req, res) => {
   try {
     const users = await User.find();
@@ -104,32 +130,33 @@ app.get('/get-users', async (req, res) => {
   }
 });
 
-// POST /add-user
-// Create a new user document from req.body data
+// 7.2. POST /add-user
+// Create user from parsed body. Logs headers, parsed & raw bodies.
 app.post('/add-user', async (req, res) => {
+  const parsed = getParsedBody(req);
+  console.log('Headers:', req.headers['content-type']);
+  console.log('Parsed body:', parsed);
+  console.log('Raw body:', req.rawBody);
   try {
-    console.log('🔍 [add-user] request body:', req.body);
-    const photoParsed = parseBase64Image(req.body.photoData || '');
-    const thumbParsed = parseBase64Image(req.body.thumbData || '');
-
+    const photoParsed = parseBase64Image(parsed.photoData || '');
+    const thumbParsed = parseBase64Image(parsed.thumbData || '');
     const newUser = new User({
-      id: req.body.id,
-      name: req.body.name,
-      age: req.body.age,
-      occupation: req.body.occupation,
-      address: req.body.address,
-      contact: req.body.contact,
-      idNumber: req.body.idNumber,
+      id: parsed.id,
+      name: parsed.name,
+      age: parsed.age,
+      occupation: parsed.occupation,
+      address: parsed.address,
+      contact: parsed.contact,
+      idNumber: parsed.idNumber,
       photo: photoParsed,
       thumbImg: thumbParsed,
-      documentNumber: req.body.documentNumber,
-      notarySrNo: req.body.notarySrNo,
-      documentType: req.body.documentType,
-      executingParties: req.body.executingParties,
-      propertyAddress: req.body.propertyAddress,
-      propertyValue: req.body.propertyValue
+      documentNumber: parsed.documentNumber,
+      notarySrNo: parsed.notarySrNo,
+      documentType: parsed.documentType,
+      executingParties: parsed.executingParties,
+      propertyAddress: parsed.propertyAddress,
+      propertyValue: parsed.propertyValue
     });
-
     await newUser.save();
     res.json({ message: '✅ User added successfully' });
   } catch (err) {
@@ -138,33 +165,32 @@ app.post('/add-user', async (req, res) => {
   }
 });
 
-// POST /update-user
-// Update an existing user by id with fields provided in req.body
+// 7.3. POST /update-user
+// Similar to add-user but updates existing by id
 app.post('/update-user', async (req, res) => {
+  const parsed = getParsedBody(req);
+  console.log('Headers:', req.headers['content-type']);
+  console.log('Parsed body:', parsed);
   try {
-    console.log('🔍 [update-user] request body:', req.body);
-    const photoParsed = parseBase64Image(req.body.photoData || '');
-    const thumbParsed = parseBase64Image(req.body.thumbData || '');
-
-    // Prepare update fields
+    const photoParsed = parseBase64Image(parsed.photoData || '');
+    const thumbParsed = parseBase64Image(parsed.thumbData || '');
     const fields = {
-      name: req.body.name,
-      age: req.body.age,
-      occupation: req.body.occupation,
-      address: req.body.address,
-      contact: req.body.contact,
-      idNumber: req.body.idNumber,
-      documentNumber: req.body.documentNumber,
-      notarySrNo: req.body.notarySrNo,
-      documentType: req.body.documentType,
-      executingParties: req.body.executingParties,
-      propertyAddress: req.body.propertyAddress,
-      propertyValue: req.body.propertyValue
+      name: parsed.name,
+      age: parsed.age,
+      occupation: parsed.occupation,
+      address: parsed.address,
+      contact: parsed.contact,
+      idNumber: parsed.idNumber,
+      documentNumber: parsed.documentNumber,
+      notarySrNo: parsed.notarySrNo,
+      documentType: parsed.documentType,
+      executingParties: parsed.executingParties,
+      propertyAddress: parsed.propertyAddress,
+      propertyValue: parsed.propertyValue
     };
     if (photoParsed) fields.photo = photoParsed;
     if (thumbParsed) fields.thumbImg = thumbParsed;
-
-    const updated = await User.findOneAndUpdate({ id: req.body.id }, fields, { new: true });
+    const updated = await User.findOneAndUpdate({ id: parsed.id }, fields, { new: true });
     if (updated) res.json({ message: '✏️ User updated successfully' });
     else res.status(404).json({ message: '❌ User not found' });
   } catch (err) {
@@ -173,12 +199,13 @@ app.post('/update-user', async (req, res) => {
   }
 });
 
-// POST /delete-user
-// Remove a user document matching req.body.id
+// 7.4. POST /delete-user
 app.post('/delete-user', async (req, res) => {
+  const parsed = getParsedBody(req);
+  console.log('Headers:', req.headers['content-type']);
+  console.log('Parsed body:', parsed);
   try {
-    console.log('🔍 [delete-user] request body:', req.body);
-    const deleted = await User.findOneAndDelete({ id: req.body.id });
+    const deleted = await User.findOneAndDelete({ id: parsed.id });
     if (deleted) res.json({ message: '🗑️ User deleted successfully' });
     else res.status(404).json({ message: '❌ User not found' });
   } catch (err) {
@@ -188,14 +215,29 @@ app.post('/delete-user', async (req, res) => {
 });
 
 // ---------------------
-// Serve front-end
+// 8. Serve front-end
 // ---------------------
 app.get('/', (req, res) => {
-  // Send the HTML file for your dashboard UI
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ---------------------
-// Start server
+// 9. Start server
 // ---------------------
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+/*
+Explanation:
+1) express.json() & express.urlencoded() ensure req.body is parsed if the client sets Content-Type correctly.
+2) We capture the raw body string in req.rawBody to debug and as fallback parsing.
+3) getParsedBody() picks the JSON-parsed body or attempts JSON.parse on rawBody.
+4) In each POST route we log:
+   - req.headers['content-type'] (to verify the client is sending the right header)
+   - parsed body object
+   - raw body string
+5) After deployment, inspect these logs in Render. If parsed body is still empty,
+   check your front-end fetch or form submission: you *must* include:
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify(yourDataObject)
+6) These logs will pinpoint whether the data ever leaves the client, and what the server actually receives.
+*/
