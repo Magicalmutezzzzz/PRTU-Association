@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login - PRTU</title>
-  <!-- Inline styles; consider external CSS -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -14,7 +13,26 @@
       align-items: center;
       height: 100vh;
       margin: 0;
+      position: relative; /* so top-bar can position absolutely */
     }
+    /* Top-right Home button */
+    .top-bar {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+    .home-btn {
+      background: #004080;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .home-btn:hover {
+      background: #0066cc;
+    }
+    /* Login box */
     .login-box {
       background: #fff;
       padding: 25px;
@@ -53,6 +71,11 @@
   </style>
 </head>
 <body>
+  <!-- Home button top-right -->
+  <div class="top-bar">
+    <a href="index.html" class="home-btn">Home</a>
+  </div>
+
   <div class="login-box">
     <h2>PRTU Login</h2>
     <input type="text" id="username" placeholder="Username" autofocus />
@@ -64,7 +87,7 @@
     function login() {
       const u = document.getElementById('username').value.trim();
       const p = document.getElementById('password').value;
-      if (u === 'admin' && p === 'admin') {
+      if (u === 'Archana-PRTU' && p === 'Archana@421301') {
         window.location.href = 'dashboard.html';
       } else {
         alert('Invalid credentials');
