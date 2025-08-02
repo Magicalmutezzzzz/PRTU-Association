@@ -17,6 +17,19 @@
       color: #003366;
     }
 
+    .flash-msg {
+      display: none;
+      text-align: center;
+      background-color: #ffe5e5;
+      color: #cc0000;
+      font-weight: bold;
+      padding: 10px;
+      border: 1px solid #cc0000;
+      border-radius: 5px;
+      margin: 10px auto;
+      max-width: 400px;
+    }
+
     form {
       max-width: 400px;
       margin: 0 auto;
@@ -103,7 +116,7 @@
     }
 
     @media print {
-      form, #printBtn {
+      form, #printBtn, .flash-msg {
         display: none !important;
       }
 
@@ -126,7 +139,8 @@
 
   <h2>Verify User Details</h2>
 
-  <!-- Search Form -->
+  <div id="flashMessage" class="flash-msg">❌ Incorrect credentials. Please try again.</div>
+
   <form onsubmit="verifyUser(event)">
     <label>Contact Number:</label>
     <input type="text" id="contact" required>
@@ -137,74 +151,81 @@
     <button type="submit">Verify</button>
   </form>
 
-  <!-- Verified Result Display -->
   <div id="result">
     <div id="userDetails"></div>
     <button id="printBtn" onclick="printUser()">Download / Print</button>
   </div>
 
   <script>
-    // 🔍 Search for user in the system
     async function verifyUser(e) {
       e.preventDefault();
 
       const contact = document.getElementById('contact').value.trim();
       const idNumber = document.getElementById('idNumber').value.trim();
-
-      const res = await fetch('/get-users');
-      const users = await res.json();
-
-      const match = users.find(u => u.contact === contact && u.idNumber === idNumber);
       const resultDiv = document.getElementById('result');
       const userDetails = document.getElementById('userDetails');
+      const flashMessage = document.getElementById('flashMessage');
 
-      if (match) {
-        resultDiv.style.display = 'block';
+      // Hide result and flashMessage before new attempt
+      resultDiv.style.display = 'none';
+      flashMessage.style.display = 'none';
 
-        userDetails.innerHTML = `
-          <div class="section">
-            <h3>Parties Info</h3>
-            <div class="field"><strong>Name:</strong> ${match.name}</div>
-            <div class="field"><strong>Age:</strong> ${match.age}</div>
-            <div class="field"><strong>Occupation:</strong> ${match.occupation}</div>
-            <div class="field"><strong>Address:</strong> ${match.address}</div>
-            <div class="field"><strong>Contact:</strong> ${match.contact}</div>
-            <div class="field"><strong>Identification Number:</strong> ${match.idNumber}</div>
-          </div>
+      try {
+        const res = await fetch('/get-users');
+        const users = await res.json();
 
-          <div class="section">
-            <h3>Document Info</h3>
-            <div class="field"><strong>Document Number:</strong> ${match.documentNumber || '—'}</div>
-            <div class="field"><strong>Notary Registered Sr No:</strong> ${match.notarySrNo || '—'}</div>
-            <div class="field"><strong>Type of Document:</strong> ${match.documentType || '—'}</div>
-            <div class="field"><strong>Executing Parties:</strong> ${match.executingParties || '—'}</div>
-            <div class="field"><strong>Property Address:</strong> ${match.propertyAddress || '—'}</div>
-            <div class="field"><strong>Property Value:</strong> ${match.propertyValue || '—'}</div>
-          </div>
+        const match = users.find(u => u.contact === contact && u.idNumber === idNumber);
 
-          <div class="section">
-            <h3>Biometric Details</h3>
-            <div class="photo-box">
-              <div>
-                <div><strong>Photo</strong></div>
-                <img src="${match.photo}" alt="Photo">
-              </div>
-              <div>
-                <div><strong>Thumb Impression</strong></div>
-                <img src="${match.thumbImg}" alt="Fingerprint">
+        if (match) {
+          resultDiv.style.display = 'block';
+          document.getElementById('printBtn').style.display = 'inline-block';
+
+          userDetails.innerHTML = `
+            <div class="section">
+              <h3>Parties Info</h3>
+              <div class="field"><strong>Name:</strong> ${match.name}</div>
+              <div class="field"><strong>Age:</strong> ${match.age}</div>
+              <div class="field"><strong>Occupation:</strong> ${match.occupation}</div>
+              <div class="field"><strong>Address:</strong> ${match.address}</div>
+              <div class="field"><strong>Contact:</strong> ${match.contact}</div>
+              <div class="field"><strong>Identification Number:</strong> ${match.idNumber}</div>
+            </div>
+
+            <div class="section">
+              <h3>Document Info</h3>
+              <div class="field"><strong>Document Number:</strong> ${match.documentNumber || '—'}</div>
+              <div class="field"><strong>Notary Registered Sr No:</strong> ${match.notarySrNo || '—'}</div>
+              <div class="field"><strong>Type of Document:</strong> ${match.documentType || '—'}</div>
+              <div class="field"><strong>Executing Parties:</strong> ${match.executingParties || '—'}</div>
+              <div class="field"><strong>Property Address:</strong> ${match.propertyAddress || '—'}</div>
+              <div class="field"><strong>Property Value:</strong> ${match.propertyValue || '—'}</div>
+            </div>
+
+            <div class="section">
+              <h3>Biometric Details</h3>
+              <div class="photo-box">
+                <div>
+                  <div><strong>Photo</strong></div>
+                  <img src="${match.photo}" alt="Photo">
+                </div>
+                <div>
+                  <div><strong>Thumb Impression</strong></div>
+                  <img src="${match.thumbImg}" alt="Fingerprint">
+                </div>
               </div>
             </div>
-          </div>
-        `;
-        document.getElementById('printBtn').style.display = 'inline-block';
-      } else {
-        resultDiv.style.display = 'block';
-        userDetails.innerHTML = `<p style="color:red;">❌ No matching user found.</p>`;
-        document.getElementById('printBtn').style.display = 'none';
+          `;
+        } else {
+          flashMessage.style.display = 'block';
+          setTimeout(() => { flashMessage.style.display = 'none'; }, 3000);
+        }
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        flashMessage.textContent = "Something went wrong. Please try again later.";
+        flashMessage.style.display = 'block';
       }
     }
 
-    // 🖨️ Download or print only the result section
     function printUser() {
       const printContent = document.getElementById('result').innerHTML;
       const original = document.body.innerHTML;
