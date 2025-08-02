@@ -1,13 +1,33 @@
 // server.js
-const express = require('express');
-const mongoose = require('mongoose');
-const path = require('path');
-require('dotenv').config();
+// Entry point for PRTU dashboard backend: sets up Express, connects to MongoDB Atlas, and defines CRUD routes.
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+// ---------------------
+// Module imports & config
+// ---------------------
+const express = require('express');            // Web framework
+const mongoose = require('mongoose');          // MongoDB ODM
+const path = require('path');                  // Utility for file paths
+require('dotenv').config();                    // Load env vars from .env
 
-// Connect to MongoDB Atlas
+// ---------------------
+// App initialization
+// ---------------------
+const app = express();                         // Create Express app
+const PORT = process.env.PORT || 3000;         // Use env PORT or fallback to 3000
+
+// ---------------------
+// Middleware
+// ---------------------
+// 1. Parse JSON bodies (requests with Content-Type: application/json)
+app.use(express.json({ limit: '20mb' }));
+// 2. Parse URL-encoded bodies (forms, Content-Type: application/x-www-form-urlencoded)
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+// 3. Serve static assets from "public" folder (HTML/CSS/JS)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ---------------------
+// Database connection
+// ---------------------
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -15,7 +35,9 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log('✅ Connected to MongoDB Atlas'))
 .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// User schema with image buffers
+// ---------------------
+// Mongoose schema & model
+// ---------------------
 const userSchema = new mongoose.Schema({
   id: Number,
   name: String,
@@ -41,30 +63,34 @@ const userSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', userSchema);
 
-// Middleware
-app.use(express.json({ limit: '20mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Helper: base64 data URI -> buffer & contentType
+// ---------------------
+// Helper: parse base64 image data
+// ---------------------
 function parseBase64Image(dataURL) {
+  // Expect format: "data:<mime>;base64,<data>"
   const matches = dataURL.match(/^data:(.+);base64,(.+)$/);
-  if (!matches) return null;
+  if (!matches) return null; // return null if not a valid data URI
   return {
     contentType: matches[1],
     data: Buffer.from(matches[2], 'base64')
   };
 }
 
-// GET all users
+// ---------------------
+// Routes
+// ---------------------
+
+// GET /get-users
+// Fetch all users from DB, convert image buffers back to base64 strings, and return JSON
 app.get('/get-users', async (req, res) => {
   try {
     const users = await User.find();
     const safe = users.map(u => {
       const obj = u.toObject();
-      if (u.photo && u.photo.data) {
+      if (u.photo?.data) {
         obj.photoData = `data:${u.photo.contentType};base64,${u.photo.data.toString('base64')}`;
       }
-      if (u.thumbImg && u.thumbImg.data) {
+      if (u.thumbImg?.data) {
         obj.thumbData = `data:${u.thumbImg.contentType};base64,${u.thumbImg.data.toString('base64')}`;
       }
       delete obj.photo;
@@ -73,16 +99,19 @@ app.get('/get-users', async (req, res) => {
     });
     res.json(safe);
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching users:', err);
     res.status(500).json({ error: '❌ Failed to fetch users' });
   }
 });
 
-// POST add user
+// POST /add-user
+// Create a new user document from req.body data
 app.post('/add-user', async (req, res) => {
   try {
+    console.log('🔍 [add-user] request body:', req.body);
     const photoParsed = parseBase64Image(req.body.photoData || '');
     const thumbParsed = parseBase64Image(req.body.thumbData || '');
+
     const newUser = new User({
       id: req.body.id,
       name: req.body.name,
@@ -100,19 +129,24 @@ app.post('/add-user', async (req, res) => {
       propertyAddress: req.body.propertyAddress,
       propertyValue: req.body.propertyValue
     });
+
     await newUser.save();
     res.json({ message: '✅ User added successfully' });
   } catch (err) {
-    console.error(err);
+    console.error('Error adding user:', err);
     res.status(500).json({ error: '❌ Failed to add user' });
   }
 });
 
-// POST update user
+// POST /update-user
+// Update an existing user by id with fields provided in req.body
 app.post('/update-user', async (req, res) => {
   try {
+    console.log('🔍 [update-user] request body:', req.body);
     const photoParsed = parseBase64Image(req.body.photoData || '');
     const thumbParsed = parseBase64Image(req.body.thumbData || '');
+
+    // Prepare update fields
     const fields = {
       name: req.body.name,
       age: req.body.age,
@@ -129,30 +163,39 @@ app.post('/update-user', async (req, res) => {
     };
     if (photoParsed) fields.photo = photoParsed;
     if (thumbParsed) fields.thumbImg = thumbParsed;
+
     const updated = await User.findOneAndUpdate({ id: req.body.id }, fields, { new: true });
     if (updated) res.json({ message: '✏️ User updated successfully' });
     else res.status(404).json({ message: '❌ User not found' });
   } catch (err) {
-    console.error(err);
+    console.error('Error updating user:', err);
     res.status(500).json({ error: '❌ Failed to update user' });
   }
 });
 
-// POST delete user
+// POST /delete-user
+// Remove a user document matching req.body.id
 app.post('/delete-user', async (req, res) => {
   try {
-    const del = await User.findOneAndDelete({ id: req.body.id });
-    if (del) res.json({ message: '🗑️ User deleted successfully' });
+    console.log('🔍 [delete-user] request body:', req.body);
+    const deleted = await User.findOneAndDelete({ id: req.body.id });
+    if (deleted) res.json({ message: '🗑️ User deleted successfully' });
     else res.status(404).json({ message: '❌ User not found' });
   } catch (err) {
-    console.error(err);
+    console.error('Error deleting user:', err);
     res.status(500).json({ error: '❌ Failed to delete user' });
   }
 });
 
-// Serve landing page
+// ---------------------
+// Serve front-end
+// ---------------------
 app.get('/', (req, res) => {
+  // Send the HTML file for your dashboard UI
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// ---------------------
+// Start server
+// ---------------------
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
