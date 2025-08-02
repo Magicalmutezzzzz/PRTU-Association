@@ -1,106 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Meta and Title -->
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PRTU Dashboard</title>
-
-  <!-- SDK for Fingerprint Scanner (MFS100/MFS110) running locally -->
+  <!-- Fingerprint SDK: ensure RDService is running on localhost:11100 -->
   <script src="http://localhost:11100/mfs100.js"></script>
 
-  <!-- Dashboard Styles -->
+  <!-- Inline Styles for simplicity; consider moving to CSS file -->
   <style>
-    body { font-family: Arial, sans-serif; background: #f2f2f2; margin: 0; font-size: 14px; }
-    header { background: #003366; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
-    header h1 { margin: 0; font-size: 18px; }
-    header button { background-color: #ff4444; color: white; border: none; padding: 5px 12px; font-size: 13px; border-radius: 4px; cursor: pointer; }
-    nav { display: flex; background: #ddd; }
-    nav button { flex: 1; padding: 8px; border: none; cursor: pointer; background: #bbb; font-size: 13px; }
-    nav button.active { background: #003366; color: white; }
-    main { padding: 10px; }
+    /* Basic reset */
+    body, h1, h2, input, button, video, canvas { margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    header {
+      background: #003366;
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { font-size: 18px; }
+    header button {
+      background: #ff4444;
+      border: none;
+      padding: 5px 12px;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    nav {
+      display: flex;
+      background: #ddd;
+    }
+    nav button {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+      background: #bbb;
+    }
+    nav button.active {
+      background: #003366;
+      color: #fff;
+    }
+    main {
+      padding: 10px;
+    }
+    /* Tabs */
     .tab { display: none; }
     .tab.active { display: block; }
-    .form-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
     .form-left, .form-right { flex: 1; min-width: 280px; }
     .form-group { margin-bottom: 8px; }
+    .tab-section {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
     input, button { width: 100%; padding: 7px; font-size: 13px; }
-    .tab-section { background: white; border: 1px solid #ccc; border-radius: 6px; padding: 10px; margin-bottom: 10px; }
-    .user-cards { display: flex; flex-wrap: wrap; gap: 10px; }
-    .user-card { background: white; padding: 10px; border-radius: 6px; box-shadow: 0 0 4px rgba(0,0,0,0.1); width: 260px; font-size: 13px; }
-    video, canvas, img.fingerprint-preview { width: 100%; border-radius: 4px; margin-top: 6px; }
-    canvas, img.fingerprint-preview { display: none; }
+    .user-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .user-card {
+      background: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 0 4px rgba(0,0,0,0.1);
+      width: 260px;
+      font-size: 13px;
+    }
+    .user-card img { width: 100%; border-radius: 4px; margin-top: 6px; }
+    #noUsers { font-style: italic; margin-top: 10px; }
   </style>
 </head>
 <body>
-  <!-- Header section -->
   <header>
     <h1>PRTU Dashboard</h1>
     <button onclick="logout()">Logout</button>
   </header>
 
-  <!-- Navigation Tabs -->
   <nav>
     <button class="active" onclick="switchTab('addTab', this)">Add/Edit User</button>
     <button onclick="switchTab('logsTab', this)">View Logs</button>
   </nav>
 
-  <!-- Main Dashboard Display -->
   <main>
-    <!-- Add/Edit User tab -->
+    <!-- Add/Edit User Tab -->
     <div id="addTab" class="tab active">
       <h2 id="form-title">Add New User</h2>
       <div class="form-row">
-        <!-- Left Section: Input fields for user details -->
+        <!-- Left: User Details -->
         <div class="form-left">
-          <div class="form-group"><input type="text" id="name" placeholder="Full Name" /></div>
-          <div class="form-group"><input type="number" id="age" placeholder="Age" /></div>
-          <div class="form-group"><input type="text" id="occupation" placeholder="Occupation" /></div>
-          <div class="form-group"><input type="text" id="address" placeholder="Address" /></div>
-          <div class="form-group"><input type="text" id="contact" placeholder="Contact Number" /></div>
-          <div class="form-group"><input type="text" id="idNumber" placeholder="Identification Number" /></div>
-          <div class="form-group"><input type="text" id="documentNumber" placeholder="Document Number" /></div>
-          <div class="form-group"><input type="text" id="notarySrNo" placeholder="Notary Registered Sr No" /></div>
-          <div class="form-group"><input type="text" id="documentType" placeholder="Type of Document" /></div>
-          <div class="form-group"><input type="text" id="executingParties" placeholder="Executing Parties" /></div>
-          <div class="form-group"><input type="text" id="propertyAddress" placeholder="Address of Property" /></div>
-          <div class="form-group"><input type="text" id="propertyValue" placeholder="Consideration of Property" /></div>
+          <!-- Full list of user fields -->
+          <div class="form-group"><input id="name" placeholder="Full Name" /></div>
+          <div class="form-group"><input id="age" type="number" placeholder="Age" /></div>
+          <div class="form-group"><input id="occupation" placeholder="Occupation" /></div>
+          <div class="form-group"><input id="address" placeholder="Address" /></div>
+          <div class="form-group"><input id="contact" placeholder="Contact Number" /></div>
+          <div class="form-group"><input id="idNumber" placeholder="Identification Number" /></div>
+          <div class="form-group"><input id="documentNumber" placeholder="Document Number" /></div>
+          <div class="form-group"><input id="notarySrNo" placeholder="Notary Sr. No." /></div>
+          <div class="form-group"><input id="documentType" placeholder="Type of Document" /></div>
+          <div class="form-group"><input id="executingParties" placeholder="Executing Parties" /></div>
+          <div class="form-group"><input id="propertyAddress" placeholder="Property Address" /></div>
+          <div class="form-group"><input id="propertyValue" placeholder="Property Value" /></div>
           <div class="form-group">
             <button onclick="saveUser()">Save</button>
-            <button onclick="clearForm()">Clear</button>
+            <button type="button" onclick="clearForm()">Clear</button>
           </div>
         </div>
-
-        <!-- Right Section: Image & Fingerprint -->
+        <!-- Right: Photo & Fingerprint -->
         <div class="form-right">
-          <!-- Webcam capture section -->
           <div class="tab-section">
             <label><strong>Click on video to capture photo</strong></label>
             <video id="video" autoplay muted playsinline onclick="takePhoto()"></video>
             <canvas id="canvas"></canvas>
           </div>
-          <!-- Fingerprint capture section -->
           <div class="tab-section">
-            <label><strong>Fingerprint Capture (via MFS110)</strong></label>
-            <button onclick="captureFingerprint()">Capture Thumb</button>
+            <label><strong>Fingerprint Capture</strong></label>
+            <button type="button" onclick="captureFingerprint()">Capture Thumb</button>
             <img id="fingerprintPreview" class="fingerprint-preview" />
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Logs tab: Shows saved users -->
+    <!-- Logs Tab -->
     <div id="logsTab" class="tab">
       <h2>Saved Users</h2>
+      <div id="noUsers" style="display:none;">No users found.</div>
       <div class="user-cards" id="userCards"></div>
     </div>
   </main>
 
-  <!-- All custom JS functions -->
   <script>
-    let editingUserId = null; // For tracking edit state
+    let editingUser = null;
 
-    // Switch between Add/Edit and Logs tab
     function switchTab(tabId, btn) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
@@ -109,166 +159,114 @@
       if (tabId === 'logsTab') loadUsers();
     }
 
-    // Redirect to Login
     function logout() {
-      window.location.href = "index.html";
+      window.location.href = 'login.html';
     }
 
-    // Reset form fields for new entry
     function clearForm() {
-      editingUserId = null;
-      document.getElementById("form-title").innerText = "Add New User";
-      document.querySelectorAll("input").forEach(input => input.value = "");
-      document.getElementById("canvas").style.display = "none";
-      document.getElementById("fingerprintPreview").style.display = "none";
+      editingUser = null;
+      document.getElementById('form-title').innerText = 'Add New User';
+      document.querySelectorAll('#addTab input').forEach(i => i.value = '');
+      document.getElementById('canvas').style.display = 'none';
+      document.getElementById('fingerprintPreview').style.display = 'none';
     }
 
-    // Save or Update user information
     async function saveUser() {
-      const canvas = document.getElementById("canvas");
-      const photoBase64 = canvas.toDataURL("image/png"); // includes data URI prefix
-      const thumbBase64 = document.getElementById("fingerprintPreview").src || "";
-
-      const id = editingUserId || Date.now(); // Generate or use existing ID
-
-      const user = {
-        id: id,
-        name: document.getElementById("name").value,
-        age: document.getElementById("age").value,
-        occupation: document.getElementById("occupation").value,
-        address: document.getElementById("address").value,
-        contact: document.getElementById("contact").value,
-        idNumber: document.getElementById("idNumber").value,
-        // Directly send images as base64 data (with data URI) to server
-        photoData: photoBase64,           // <-- now contains the full base64 png
-        thumbData: thumbBase64,           // <-- now contains the full base64 bmp
-        documentNumber: document.getElementById("documentNumber").value,
-        notarySrNo: document.getElementById("notarySrNo").value,
-        documentType: document.getElementById("documentType").value,
-        executingParties: document.getElementById("executingParties").value,
-        propertyAddress: document.getElementById("propertyAddress").value,
-        propertyValue: document.getElementById("propertyValue").value
+      const photoData = document.getElementById('canvas').toDataURL('image/png');
+      const thumbData = document.getElementById('fingerprintPreview').src || '';
+      const payload = {
+        id: editingUser?.id || Date.now(),
+        name: document.getElementById('name').value,
+        age: document.getElementById('age').value,
+        occupation: document.getElementById('occupation').value,
+        address: document.getElementById('address').value,
+        contact: document.getElementById('contact').value,
+        idNumber: document.getElementById('idNumber').value,
+        documentNumber: document.getElementById('documentNumber').value,
+        notarySrNo: document.getElementById('notarySrNo').value,
+        documentType: document.getElementById('documentType').value,
+        executingParties: document.getElementById('executingParties').value,
+        propertyAddress: document.getElementById('propertyAddress').value,
+        propertyValue: document.getElementById('propertyValue').value,
+        photoData,
+        thumbData
       };
 
-      // Send everything to your MongoDB-backed API (server must handle and store images/binary)
-      fetch(editingUserId ? "/update-user" : "/add-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(user)
-      }).then(() => {
+      try {
+        const url = editingUser ? '/update-user' : '/add-user';
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        alert(data.message);
         clearForm();
         switchTab('logsTab', document.querySelectorAll('nav button')[1]);
-      });
+      } catch (err) {
+        console.error(err);
+        alert('Failed to save user.');
+      }
     }
 
-    // Load saved user list from server
-    function loadUsers() {
-      fetch("/get-users")
-        .then(res => res.json())
-        .then(users => {
-          const container = document.getElementById("userCards");
-          container.innerHTML = "";
-          users.forEach(user => {
-            const div = document.createElement("div");
-            div.className = "user-card";
-            div.innerHTML = `
-              <h3>${user.name}</h3>
-              <p><strong>Age:</strong> ${user.age}</p>
-              <p><strong>Occupation:</strong> ${user.occupation}</p>
-              <p><strong>Contact:</strong> ${user.contact}</p>
-              <p><strong>ID:</strong> ${user.idNumber}</p>
-              <button onclick='editUser(${JSON.stringify(user)})'>Edit</button>
-              <button onclick='deleteUser(${user.id})'>Delete</button>
-            `;
-            container.appendChild(div);
-          });
+    async function loadUsers() {
+      try {
+        const res = await fetch('/get-users');
+        const users = await res.json();
+        const container = document.getElementById('userCards');
+        const noUsers = document.getElementById('noUsers');
+        container.innerHTML = '';
+        if (!users.length) return noUsers.style.display = 'block';
+        noUsers.style.display = 'none';
+        users.forEach(u => {
+          const card = document.createElement('div');
+          card.className = 'user-card';
+          card.innerHTML = `
+            <h3>${u.name}</h3>
+            <p><strong>Age:</strong> ${u.age}</p>
+            <p><strong>Contact:</strong> ${u.contact}</p>
+            <p><strong>ID:</strong> ${u.idNumber}</p>
+            ${u.photoData ? `<img src="${u.photoData}" alt="Photo">` : ''}
+            <button onclick='startEdit(${encodeURIComponent(JSON.stringify(u))})'>Edit</button>
+            <button onclick='deleteUser(${u.id})'>Delete</button>
+          `;
+          container.appendChild(card);
         });
+      } catch (e) {
+        alert('Error loading users');
+      }
     }
 
-    // Populate form with current user data for editing
-    function editUser(user) {
+    function startEdit(encoded) {
+      const user = JSON.parse(decodeURIComponent(encoded));
       switchTab('addTab', document.querySelectorAll('nav button')[0]);
-      editingUserId = user.id;
-      document.getElementById("form-title").innerText = "Edit User";
-      document.getElementById("name").value = user.name;
-      document.getElementById("age").value = user.age;
-      document.getElementById("occupation").value = user.occupation;
-      document.getElementById("address").value = user.address;
-      document.getElementById("contact").value = user.contact;
-      document.getElementById("idNumber").value = user.idNumber;
-      document.getElementById("documentNumber").value = user.documentNumber || "";
-      document.getElementById("notarySrNo").value = user.notarySrNo || "";
-      document.getElementById("documentType").value = user.documentType || "";
-      document.getElementById("executingParties").value = user.executingParties || "";
-      document.getElementById("propertyAddress").value = user.propertyAddress || "";
-      document.getElementById("propertyValue").value = user.propertyValue || "";
-
-      // Load photo from data URI, if exists
-      if (user.photoData) {
-        const img = new Image();
-        img.src = user.photoData;
-        img.onload = () => {
-          const canvas = document.getElementById("canvas");
-          const ctx = canvas.getContext("2d");
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
-          canvas.style.display = "block";
-        }
-      }
-
-      // Load saved fingerprint from data URI, if exists
-      if (user.thumbData) {
-        const fp = document.getElementById("fingerprintPreview");
-        fp.src = user.thumbData;
-        fp.style.display = "block";
-      }
-    }
-
-    // Delete user based on ID
-    function deleteUser(id) {
-      if (confirm("Delete this user?")) {
-        fetch("/delete-user", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id })
-        }).then(() => loadUsers());
-      }
-    }
-
-    // Trigger fingerprint capture using SDK
-    function captureFingerprint() {
-      if (!window.CaptureFinger) {
-        alert("MFS SDK not found. Is RDService running?");
-        return;
-      }
-
-      // Capture fingerprint with preview
-      CaptureFinger(true, (result) => {
-        const img = document.getElementById("fingerprintPreview");
-        img.src = "image/bmp;base64," + result.BitmapData;
-        img.style.display = "block";
-      }, (error) => {
-        alert("Fingerprint capture failed: " + error);
+      editingUser = user;
+      document.getElementById('form-title').innerText = 'Edit User';
+      Object.keys(user).forEach(key => {
+        if (document.getElementById(key)) document.getElementById(key).value = user[key] || '';
       });
+      if (user.photoData) {
+        const img = new Image(); img.src = user.photoData;
+        img.onload = () => { const c = document.getElementById('canvas'); c.width = img.width; c.height = img.height; c.getContext('2d').drawImage(img,0,0); c.style.display='block'; };
+      }
+      if (user.thumbData) {
+        const fp = document.getElementById('fingerprintPreview'); fp.src = user.thumbData; fp.style.display='block';
+      }
     }
 
-    // Load webcam stream
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
-        document.getElementById("video").srcObject = stream;
-      }).catch(() => alert("Webcam access denied"));
-
-    // Capture snapshot from webcam preview
-    function takePhoto() {
-      const video = document.getElementById("video");
-      const canvas = document.getElementById("canvas");
-      const ctx = canvas.getContext("2d");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0);
-      canvas.style.display = "block";
+    async function deleteUser(id) {
+      if (!confirm('Delete?')) return;
+      await fetch('/delete-user',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id}) });
+      loadUsers();
     }
+
+    function captureFingerprint() {
+      if (!window.CaptureFinger) return alert('SDK not running');
+      CaptureFinger(true, res=>{ const img=document.getElementById('fingerprintPreview'); img.src='data:image/bmp;base64,'+res.BitmapData; img.style.display='block'; }, e=>alert(e));
+    }
+
+    navigator.mediaDevices.getUserMedia({video:true}).then(s=>{document.getElementById('video').srcObject=s}).catch(()=>{});
+    function takePhoto(){ const v=document.getElementById('video'),c=document.getElementById('canvas');c.width=v.videoWidth; c.height=v.videoHeight; c.getContext('2d').drawImage(v,0,0); c.style.display='block'; }
   </script>
 </body>
 </html>
