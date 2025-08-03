@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>All Sale Deeds - PRTU</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f2f2f2; margin:0; padding:20px; }
-    h2 { text-align:center; color:#004080; margin-bottom:16px; }
-    table { width:100%; border-collapse:collapse; background:#fff; }
-    th, td { padding:8px; border:1px solid #ccc; font-size:14px; vertical-align:top; }
-    th { background:#004080; color:#fff; }
-    img.thumb { width:60px; height:auto; border-radius:4px; }
-    .actions button { margin:2px; padding:6px 10px; font-size:12px; border:none; border-radius:4px; cursor:pointer; }
-    .edit-btn { background:#28a745; color:#fff; }
-    .delete-btn { background:#dc3545; color:#fff; }
-    .no-records { text-align:center; font-style:italic; padding:20px; }
+    body { font-family: Arial, sans-serif; background: #f2f2f2; margin: 0; padding: 20px; }
+    h2 { text-align: center; color: #004080; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th, td { padding: 8px; border: 1px solid #ccc; font-size: 14px; vertical-align: top; }
+    th { background: #004080; color: #fff; }
+    img.thumb { width: 60px; height: auto; border-radius: 4px; }
+    .actions button { margin: 2px; padding: 6px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; }
+    .edit-btn { background: #28a745; color: #fff; }
+    .delete-btn { background: #dc3545; color: #fff; }
+    .no-records { text-align: center; font-style: italic; padding: 20px; }
   </style>
 </head>
 <body>
@@ -22,94 +22,51 @@
   <table id="recordsTable">
     <thead>
       <tr>
-        <th>Doc No.</th>
-        <th>Notary Sr. No.</th>
-        <th>Doc Type</th>
-        <th>Purchaser</th>
-        <th>Seller</th>
-        <th>Witness</th>
-        <th>Schedule</th>
-        <th>Consideration</th>
-        <th>Photo (P)</th>
-        <th>Thumb (P)</th>
-        <th>Actions</th>
+        <th>Doc No.</th><th>Notary Sr. No.</th><th>Doc Type</th><th>Purchaser</th><th>Seller</th>
+        <th>Witness</th><th>Schedule</th><th>Consideration</th><th>Photo (P)</th><th>Thumb (P)</th><th>Actions</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
-
   <script>
     async function loadRecords() {
       const tbody = document.querySelector('#recordsTable tbody');
       tbody.innerHTML = '';
-
       try {
         const res = await fetch('/get-users');
         const records = await res.json();
-
         if (!records.length) {
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="11" class="no-records">No records found.</td>
-            </tr>`;
+          tbody.innerHTML = '<tr><td colspan="11" class="no-records">No records found.</td></tr>';
           return;
         }
-
         records.forEach(r => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td>${r.metaDocumentNumber  || '—'}</td>
-            <td>${r.metaNotarySrNo      || '—'}</td>
-            <td>${r.metaDocumentType    || '—'}</td>
-            <td>${r.purchaserName       || '—'}</td>
-            <td>${r.sellerName          || '—'}</td>
-            <td>${r.witnessName         || '—'}</td>
-            <td>${r.scheduleOfProperty  || '—'}</td>
-            <td>${r.consideration       || '—'}</td>
-            <td>${r.photoP 
-                ? `<img src="${r.photoP}" class="thumb" alt="Photo">` 
-                : '—'}</td>
-            <td>${r.thumbP 
-                ? `<img src="${r.thumbP}" class="thumb" alt="Thumb">` 
-                : '—'}</td>
+            <td>${r.metaDocumentNumber||'—'}</td>
+            <td>${r.metaNotarySrNo||'—'}</td>
+            <td>${r.metaDocumentType||'—'}</td>
+            <td>${r.purchaserName||'—'}</td>
+            <td>${r.sellerName||'—'}</td>
+            <td>${r.witnessName||'—'}</td>
+            <td>${r.scheduleOfProperty||'—'}</td>
+            <td>${r.consideration||'—'}</td>
+            <td>${r.photoP?`<img src="${r.photoP}" class="thumb">`:'—'}</td>
+            <td>${r.thumbP?`<img src="${r.thumbP}" class="thumb">`:'—'}</td>
             <td class="actions">
-              <button class="edit-btn" onclick="editRecord(${r.id})">Edit</button>
+              <button class="edit-btn" onclick="window.location='dashboard.html?edit='+${r.id}">Edit</button>
               <button class="delete-btn" onclick="deleteRecord(${r.id})">Delete</button>
             </td>`;
           tbody.appendChild(tr);
         });
-
-      } catch (err) {
-        console.error(err);
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="11" class="no-records">Error loading records.</td>
-          </tr>`;
-      }
-    }
-
-    function editRecord(id) {
-      // Redirect to dashboard.html with ?edit=<id>
-      window.location.href = `dashboard.html?edit=${id}`;
-    }
-
-    async function deleteRecord(id) {
-      if (!confirm('Delete this record?')) return;
-      try {
-        const res = await fetch('/delete-user', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ id })
-        });
-        const data = await res.json();
-        alert(data.message);
-        loadRecords();
       } catch {
-        alert('Deletion failed');
+        tbody.innerHTML = '<tr><td colspan="11" class="no-records">Error loading records.</td></tr>';
       }
     }
-
-    // Kick things off when the page loads
+    async function deleteRecord(id) {
+      if(!confirm('Delete this record?')) return;
+      await fetch('/delete-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+      loadRecords();
+    }
     document.addEventListener('DOMContentLoaded', loadRecords);
   </script>
 </body>
