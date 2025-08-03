@@ -1,36 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>PRTU Dashboard</title>
   <script src="http://localhost:11100/mfs100.js"></script>
   <style>
-    body, h1, h2, input, button, video, canvas { margin: 0; padding: 0; font-family: Arial, sans-serif; }
-    body { background: #f2f2f2; font-size: 14px; line-height: 1.4; }
-    header { background: #003366; color: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
-    header h1 { font-size: 18px; }
-    header button { background: #ff4444; border: none; padding: 5px 12px; color: #fff; border-radius: 4px; cursor: pointer; }
-    nav { display: flex; background: #ddd; }
-    nav button { flex: 1; padding: 8px; border: none; font-size: 13px; cursor: pointer; background: #bbb; }
-    nav button.active { background: #003366; color: #fff; }
-    main { padding: 10px; }
-    .tab { display: none; }
-    .tab.active { display: block; }
-    .section { background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 12px; margin-bottom: 12px; }
-    .section h2 { margin-bottom: 8px; color: #004080; }
-    .field-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
-    .field-group label { flex: 0 0 140px; font-weight: bold; }
-    .field-group input { flex: 1; padding: 6px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
-    .capture-row { display: flex; gap: 12px; margin-top: 8px; }
-    .capture-block { background: #fafafa; padding: 8px; border: 1px solid #ddd; border-radius: 4px; flex: 1; text-align: center; }
-    .capture-block video, .capture-block img, .capture-block canvas { width: 100%; max-height: 180px; border-radius: 4px; }
-    .capture-block button { margin-top: 6px; padding: 6px 10px; border: none; background: #004080; color: #fff; border-radius: 4px; cursor: pointer; }
-    .capture-block button:hover { background: #0066cc; }
-    .action-row { text-align: right; margin-top: 12px; }
-    .action-row button { padding: 8px 14px; margin-left: 8px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; }
-    .btn-save { background: #28a745; color: #fff; }
-    .btn-clear { background: #dc3545; color: #fff; }
+    body, h1, h2, input, button, video, canvas { margin:0; padding:0; font-family:Arial,sans-serif; }
+    body { background:#f2f2f2; font-size:14px; line-height:1.4; }
+    header { background:#003366; color:#fff; padding:10px 20px;
+             display:flex; justify-content:space-between; align-items:center; }
+    header h1 { font-size:18px; margin:0; }
+    header button { background:#ff4444; color:#fff; border:none; padding:5px 12px;
+                    border-radius:4px; cursor:pointer; }
+    nav { display:flex; background:#ddd; }
+    nav button { flex:1; padding:8px; border:none; cursor:pointer; background:#bbb;
+                 font-size:13px; }
+    nav button.active { background:#003366; color:#fff; }
+    main { padding:10px; }
+    .tab { display:none; }
+    .tab.active { display:block; }
+    .section { background:#fff; border:1px solid #ccc; border-radius:6px;
+                padding:12px; margin-bottom:12px; }
+    .section h2 { color:#004080; margin-bottom:8px; }
+    .field-group { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+    .field-group label { flex:0 0 140px; font-weight:bold; }
+    .field-group input { flex:1; padding:6px; border:1px solid #ccc; border-radius:4px; }
+    .capture-row { display:flex; gap:12px; margin-top:8px; }
+    .capture-block { flex:1; background:#fafafa; border:1px solid #ddd;
+                     border-radius:4px; padding:8px; text-align:center; }
+    .capture-block video, .capture-block img, .capture-block canvas {
+      width:100%; max-height:180px; border-radius:4px; }
+    .capture-block button { margin-top:6px; padding:6px 10px; border:none;
+                            background:#004080; color:#fff; border-radius:4px;
+                            cursor:pointer; }
+    .capture-block button:hover { background:#0066cc; }
+    .action-row { text-align:right; margin-top:12px; }
+    .action-row button { padding:8px 14px; margin-left:8px; border:none;
+                         border-radius:4px; cursor:pointer; font-size:14px; }
+    .btn-save { background:#28a745; color:#fff; }
+    .btn-clear { background:#dc3545; color:#fff; }
   </style>
 </head>
 <body>
@@ -39,34 +48,44 @@
     <button onclick="logout()">Logout</button>
   </header>
   <nav>
-    <button class="active" onclick="switchTab('formTab', this)">Fill Sale Deed</button>
-    <button onclick="switchTab('logsTab', this)">View Saved</button>
+    <button class="active" onclick="switchTab('formTab',this)">Fill Sale Deed</button>
+    <button onclick="switchTab('logsTab',this)">View Saved</button>
   </nav>
   <main>
-    <!-- Data Entry Tab -->
+    <!-- Fill form -->
     <div id="formTab" class="tab active">
       <!-- Metadata -->
       <div class="section">
         <h2>Document Metadata</h2>
-        <div class="field-group"><label>Document Number:</label><input id="documentNumberTop" placeholder="Document Number"/></div>
-        <div class="field-group"><label>Notary Reg. Sr. No.:</label><input id="notarySrNoTop" placeholder="Notary Registered Sr. No."/></div>
-        <div class="field-group"><label>Type of Document:</label><input id="documentTypeTop" placeholder="Type of Document"/></div>
+        <div class="field-group">
+          <label>Document Number:</label>
+          <input id="documentNumberTop" placeholder="e.g. RTG-1150"/>
+        </div>
+        <div class="field-group">
+          <label>Notary Reg. Sr. No.:</label>
+          <input id="notarySrNoTop" placeholder="e.g. 6143/22-05-2025"/>
+        </div>
+        <div class="field-group">
+          <label>Type of Document:</label>
+          <input id="documentTypeTop" placeholder="e.g. Sale Deed"/>
+        </div>
       </div>
+
       <!-- Purchaser -->
       <div class="section">
         <h2>Executing Parties — Purchaser</h2>
-        <div class="field-group"><label>Name:</label><input id="purchaserName" placeholder="Full Name"/></div>
+        <div class="field-group"><label>Name:</label><input id="purchaserName"/></div>
         <div class="field-group"><label>Age:</label><input id="purchaserAge" type="number"/></div>
         <div class="field-group"><label>Occupation:</label><input id="purchaserOccupation"/></div>
-        <div class="field-group"><label>Residing At:</label><input id="purchaserAddress" placeholder="Address"/></div>
+        <div class="field-group"><label>Residing At:</label><input id="purchaserAddress"/></div>
         <div class="field-group"><label>Contact No.:</label><input id="purchaserContact"/></div>
         <div class="field-group"><label>Identification:</label><input id="purchaserIdNumber"/></div>
         <div class="capture-row">
           <div class="capture-block">
             <strong>Photo</strong>
-            <video id="videoP" autoplay muted playsinline onclick="takePhoto('P')"></video>
+            <video id="videoP" autoplay muted playsinline></video>
             <canvas id="canvasP" style="display:none"></canvas>
-            <button onclick="showVideo('P')">Capture Photo</button>
+            <button onclick="takePhoto('P')">Capture Photo</button>
           </div>
           <div class="capture-block">
             <strong>Thumb Impression</strong>
@@ -75,39 +94,198 @@
           </div>
         </div>
       </div>
-      <!-- Seller and Witness sections similarly... -->
-      <!-- Document Details -->
+
+      <!-- Seller -->
+      <div class="section">
+        <h2>Executing Parties — Seller</h2>
+        <div class="field-group"><label>Name:</label><input id="sellerName"/></div>
+        <div class="field-group"><label>Age:</label><input id="sellerAge" type="number"/></div>
+        <div class="field-group"><label>Occupation:</label><input id="sellerOccupation"/></div>
+        <div class="field-group"><label>Residing At:</label><input id="sellerAddress"/></div>
+        <div class="field-group"><label>Contact No.:</label><input id="sellerContact"/></div>
+        <div class="field-group"><label>Identification:</label><input id="sellerIdNumber"/></div>
+        <div class="capture-row">
+          <div class="capture-block">
+            <strong>Photo</strong>
+            <video id="videoS" autoplay muted playsinline></video>
+            <canvas id="canvasS" style="display:none"></canvas>
+            <button onclick="takePhoto('S')">Capture Photo</button>
+          </div>
+          <div class="capture-block">
+            <strong>Thumb Impression</strong>
+            <button onclick="captureFingerprint('S')">Capture Thumb</button>
+            <img id="thumbS" style="display:none; margin-top:6px;"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Witness -->
+      <div class="section">
+        <h2>Witness</h2>
+        <div class="field-group"><label>Name:</label><input id="witnessName"/></div>
+        <div class="field-group"><label>Age:</label><input id="witnessAge" type="number"/></div>
+        <div class="field-group"><label>Occupation:</label><input id="witnessOccupation"/></div>
+        <div class="field-group"><label>Residing At:</label><input id="witnessAddress"/></div>
+        <div class="field-group"><label>Contact No.:</label><input id="witnessContact"/></div>
+        <div class="field-group"><label>Identification:</label><input id="witnessIdNumber"/></div>
+        <div class="capture-row">
+          <div class="capture-block">
+            <strong>Photo</strong>
+            <video id="videoW" autoplay muted playsinline></video>
+            <canvas id="canvasW" style="display:none"></canvas>
+            <button onclick="takePhoto('W')">Capture Photo</button>
+          </div>
+          <div class="capture-block">
+            <strong>Thumb Impression</strong>
+            <button onclick="captureFingerprint('W')">Capture Thumb</button>
+            <img id="thumbW" style="display:none; margin-top:6px;"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Property -->
       <div class="section">
         <h2>Document Details</h2>
-        <div class="field-group"><label>Schedule of Property:</label><input id="scheduleOfProperty" placeholder="..."/></div>
-        <div class="field-group"><label>Consideration:</label><input id="consideration" placeholder="..."/></div>
+        <div class="field-group"><label>Schedule of Property:</label>
+          <input id="scheduleOfProperty" placeholder="e.g. At Umbarhne, Survey No.…"/>
+        </div>
+        <div class="field-group"><label>Consideration:</label>
+          <input id="consideration" placeholder="Total Consideration of Rs…"/>
+        </div>
       </div>
+
+      <!-- Actions -->
       <div class="action-row">
         <button class="btn-clear" onclick="clearForm()">Clear</button>
         <button class="btn-save" onclick="saveSaleDeed()">Save Sale Deed</button>
       </div>
     </div>
 
-    <!-- View Saved Tab -->
+    <!-- View Saved -->
     <div id="logsTab" class="tab">
       <h2>Saved Documents</h2>
-      <button onclick="window.location.href='users.html'">View Saved</button>
+      <button onclick="window.location.href='users.html'">Click to View Saved Records</button>
+      <div id="noUsers" style="font-style:italic; margin-top:10px;">No records found.</div>
+      <div class="user-cards" id="userCards"></div>
     </div>
   </main>
 
   <script>
-    function switchTab(tabId, btn) {
+    // Tab switch
+    function switchTab(tabId,btn){
       document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
       document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       btn.classList.add('active');
+      if(tabId==='logsTab') loadUsers();
     }
     function logout(){ window.location.href='login.html'; }
-    function clearForm(){ /* reset inputs & canvases */ }
-    async function saveSaleDeed(){ /* gather payload & POST /add-user */ }
-    function takePhoto(role){ /* capture photo to canvas */ }
-    function showVideo(role){ /* toggle canvas */ }
-    function captureFingerprint(role){ /* SDK call */ }
+
+    // Clear
+    function clearForm(){
+      document.querySelectorAll('#formTab input').forEach(i=>i.value='');
+      document.querySelectorAll('canvas').forEach(c=>c.style.display='none');
+      document.querySelectorAll('.capture-block img').forEach(i=>i.style.display='none');
+    }
+
+    // Save
+    async function saveSaleDeed(){
+      const payload = {
+        id: Date.now(),
+        metaDocumentNumber: document.getElementById('documentNumberTop').value,
+        metaNotarySrNo:  document.getElementById('notarySrNoTop').value,
+        metaDocumentType: document.getElementById('documentTypeTop').value,
+
+        purchaserName: document.getElementById('purchaserName').value,
+        purchaserAge:  document.getElementById('purchaserAge').value,
+        purchaserOccupation: document.getElementById('purchaserOccupation').value,
+        purchaserAddress: document.getElementById('purchaserAddress').value,
+        purchaserContact: document.getElementById('purchaserContact').value,
+        purchaserIdNumber: document.getElementById('purchaserIdNumber').value,
+        photoP: document.getElementById('canvasP').toDataURL('image/png'),
+        thumbP: document.getElementById('thumbP').src,
+
+        sellerName: document.getElementById('sellerName').value,
+        sellerAge:  document.getElementById('sellerAge').value,
+        sellerOccupation: document.getElementById('sellerOccupation').value,
+        sellerAddress: document.getElementById('sellerAddress').value,
+        sellerContact: document.getElementById('sellerContact').value,
+        sellerIdNumber: document.getElementById('sellerIdNumber').value,
+        photoS: document.getElementById('canvasS').toDataURL('image/png'),
+        thumbS: document.getElementById('thumbS').src,
+
+        witnessName: document.getElementById('witnessName').value,
+        witnessAge:  document.getElementById('witnessAge').value,
+        witnessOccupation: document.getElementById('witnessOccupation').value,
+        witnessAddress: document.getElementById('witnessAddress').value,
+        witnessContact: document.getElementById('witnessContact').value,
+        witnessIdNumber: document.getElementById('witnessIdNumber').value,
+        photoW: document.getElementById('canvasW').toDataURL('image/png'),
+        thumbW: document.getElementById('thumbW').src,
+
+        scheduleOfProperty: document.getElementById('scheduleOfProperty').value,
+        consideration: document.getElementById('consideration').value
+      };
+      try{
+        const res = await fetch('/add-user',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        alert(data.message);
+        clearForm();
+      }catch{
+        alert('Failed to save');
+      }
+    }
+
+    // Photo & thumb
+    function takePhoto(role){
+      const v=document.getElementById('video'+role),
+            c=document.getElementById('canvas'+role);
+      c.width=v.videoWidth; c.height=v.videoHeight;
+      c.getContext('2d').drawImage(v,0,0);
+      c.style.display='block';
+    }
+    function captureFingerprint(role){
+      if(!window.CaptureFinger) return alert('SDK not running');
+      CaptureFinger(true,
+        res=>{
+          const img=document.getElementById('thumb'+role);
+          img.src='data:image/bmp;base64,'+res.BitmapData;
+          img.style.display='block';
+        },
+        e=>alert(e)
+      );
+    }
+    ['P','S','W'].forEach(r=>{
+      navigator.mediaDevices.getUserMedia({video:true})
+        .then(s=>document.getElementById('video'+r).srcObject=s)
+        .catch(()=>{/*ignore*/});
+    });
+
+    // Load saved
+    async function loadUsers(){
+      const res=await fetch('/get-users'),
+            users=await res.json(),
+            cont=document.getElementById('userCards');
+      cont.innerHTML='';
+      if(!users.length){
+        document.getElementById('noUsers').style.display='block';
+        return;
+      }
+      document.getElementById('noUsers').style.display='none';
+      users.forEach(u=>{
+        const div=document.createElement('div');
+        div.style=`
+          background:#fff;padding:10px;border:1px solid #ccc;
+          margin-bottom:10px;white-space:pre-wrap;font-family:monospace;
+        `;
+        div.textContent=JSON.stringify(u,null,2);
+        cont.appendChild(div);
+      });
+    }
   </script>
 </body>
 </html>
