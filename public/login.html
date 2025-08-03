@@ -5,77 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login - PRTU</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f0f0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      position: relative; /* so top-bar can position absolutely */
-    }
-    /* Top-right Home button */
-    .top-bar {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-    }
-    .home-btn {
-      background: #004080;
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 4px;
-      text-decoration: none;
-      font-size: 14px;
-    }
-    .home-btn:hover {
-      background: #0066cc;
-    }
-    /* Login box */
-    .login-box {
-      background: #fff;
-      padding: 25px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 300px;
-    }
-    .login-box h2 {
-      text-align: center;
-      color: #004080;
-      margin-bottom: 20px;
-    }
-    .login-box input {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    .login-box button {
-      background: #004080;
-      color: #fff;
-      border: none;
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    .login-box button:hover {
-      background: #0066cc;
-    }
+    body { font-family: Arial, sans-serif; background: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; position: relative; }
+    .top-bar { position: absolute; top: 20px; right: 20px; }
+    .home-btn { background: #004080; color: #fff; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-size: 14px; }
+    .home-btn:hover { background: #0066cc; }
+    .login-box { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px; }
+    .login-box h2 { text-align: center; color: #004080; margin-bottom: 20px; }
+    .login-box input { display: block; width: 100%; padding: 10px; margin: 10px 0; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
+    .login-box button { background: #004080; color: #fff; border: none; width: 100%; padding: 10px; font-size: 16px; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+    .login-box button:hover { background: #0066cc; }
   </style>
 </head>
 <body>
-  <!-- Home button top-right -->
   <div class="top-bar">
     <a href="index.html" class="home-btn">Home</a>
   </div>
-
   <div class="login-box">
     <h2>PRTU Login</h2>
     <input type="text" id="username" placeholder="Username" autofocus />
@@ -93,10 +37,7 @@
         alert('Invalid credentials');
       }
     }
-    // Enter key submits
-    document.body.addEventListener('keydown', e => {
-      if (e.key === 'Enter') login();
-    });
+    document.body.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
   </script>
 </body>
 </html>
