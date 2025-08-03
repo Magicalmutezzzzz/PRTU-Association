@@ -3,56 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PRTU - Association</title>
-  <!-- Styles for landing page -->
+  <title>PRTU Association</title>
   <style>
     * { box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; line-height: 1.6; margin:0; padding:0; }
-    header {
-      background: #101213;
-      color: #fff;
-      text-align: center;
-      padding: 40px 20px;
-      position: relative;
-    }
+    body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; }
+    header { background: #101213; color: #fff; text-align: center; padding: 40px 20px; position: relative; }
     header h1 { font-size: 2rem; }
-    header img {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      height: 80px;
-    }
-    nav {
-      background: #e6e6e6;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding: 20px;
-    }
-    nav marquee h3 { margin:0; color:#444; }
-    nav a {
-      margin: 10px;
-      padding: 12px 24px;
-      background: #004080;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 8px;
-      transition: background 0.3s;
-    }
+    header img { position: absolute; top: 20px; right: 20px; height: 80px; }
+    nav { background: #e6e6e6; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    nav marquee h3 { margin: 0; color: #444; }
+    nav a { margin: 0 10px; padding: 12px 24px; background: #004080; color: #fff; text-decoration: none; border-radius: 8px; transition: background 0.3s; }
     nav a:hover { background: #0066cc; }
     main { padding: 30px 20px; }
-    section { margin-bottom: 40px; }
-    #contact { background:#f2f2f2; padding:20px; border-radius:8px; }
-    footer {
-      background: #333;
-      color: #fff;
-      text-align: center;
-      padding: 15px;
-    }
+    #contact { background: #f2f2f2; padding: 20px; border-radius: 8px; }
+    footer { background: #333; color: #fff; text-align: center; padding: 15px; }
     @media (max-width:768px) {
-      header img { position: static; margin-top:10px; height:50px; }
-      nav { flex-direction:column; }
-      nav a { width:100%; max-width:300px; text-align:center; }
+      header img { position: static; margin-top: 10px; height: 50px; }
+      nav { flex-direction: column; }
+      nav a { width: 100%; max-width: 300px; text-align: center; margin: 5px 0; }
     }
   </style>
 </head>
@@ -61,24 +29,20 @@
     <h1>PRTU Association</h1>
     <img src="images.png" alt="PRTU Logo" />
   </header>
-
   <nav>
-    <!-- Notice: use marquee only if acceptable; otherwise replace with CSS animation -->
     <marquee><h3>This site is for verification of notarized documents available in the database, not advertisement.</h3></marquee>
     <a href="verify.html">Verify</a>
     <a href="login.html">Login</a>
   </nav>
-
   <main>
     <section id="contact">
       <h2>Contact Us</h2>
-      <p>Email: <a href="pandavarchana77@gmail.com">pandavarchana77@gmail.com</a></p>
+      <p>Email: <a href="mailto:pandavarchana77@gmail.com">pandavarchana77@gmail.com</a></p>
       <p>Phone: +91 9220574357</p>
       <p>Address: N.J House, Cabin no.B Hiralal Chotelal compound,<br>
-       Kalyan court ,Bhaji Market,Old Station Road,<br>
-       Kalyan (West) Dist.Thane (Maharashta)- 421301</p>
+      Kalyan court, Bhaji Market, Old Station Road,<br>
+      Kalyan (West) Dist. Thane (Maharashtra) - 421301</p>
     </section>
-
     <section id="details">
       <h2>Notarized Documents</h2>
       <ul>
@@ -102,11 +66,8 @@
       </ul>
     </section>
   </main>
-
   <footer>
     &copy; 2025 PRTU Association. All rights reserved.
   </footer>
 </body>
 </html>
-
-
