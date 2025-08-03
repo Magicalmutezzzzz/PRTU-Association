@@ -4,19 +4,26 @@ from flask_cors import CORS
 from bson.json_util import dumps
 from dotenv import load_dotenv
 import os
+import urllib.parse
 
-# Load .env variables
+# Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# MongoDB Config
-app.config["MONGO_URI"] = os.getenv("MONGO_URI")
+# Build MONGO_URI from components
+user = urllib.parse.quote_plus(os.getenv("MONGO_USER"))
+password = urllib.parse.quote_plus(os.getenv("MONGO_PASS"))
+host = os.getenv("MONGO_HOST")
+db_name = os.getenv("MONGO_DB")
+app.config["MONGO_URI"] = f"mongodb+srv://{user}:{password}@{host}/{db_name}?retryWrites=true&w=majority&appName={db_name}"
+
+# Setup Mongo
 mongo = PyMongo(app)
 db = mongo.db
 
-# Add user route
+# Routes
 @app.route('/add-user', methods=['POST'])
 def add_user():
     try:
@@ -27,7 +34,6 @@ def add_user():
         print("Error inserting:", e)
         return jsonify({"message": "❌ Failed to save"}), 500
 
-# Get all users
 @app.route('/get-users', methods=['GET'])
 def get_users():
     try:
@@ -37,7 +43,6 @@ def get_users():
         print("Error fetching users:", e)
         return jsonify([])
 
-# Delete user by `id` field
 @app.route('/delete-user', methods=['POST'])
 def delete_user():
     try:
