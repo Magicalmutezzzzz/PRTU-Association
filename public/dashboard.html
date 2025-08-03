@@ -264,28 +264,77 @@
         .then(s=>document.getElementById('video'+r).srcObject=s)
         .catch(()=>{/*ignore*/});
     });
+    //// TODO: Open edit form or modal with pre-filled values
+    function editUser(user) {
+  alert("Edit clicked for: " + user.purchaserName);
+  
+}
 
     // Load saved
-    async function loadUsers(){
-      const res=await fetch('/get-users'),
-            users=await res.json(),
-            cont=document.getElementById('userCards');
-      cont.innerHTML='';
-      if(!users.length){
-        document.getElementById('noUsers').style.display='block';
-        return;
-      }
-      document.getElementById('noUsers').style.display='none';
-      users.forEach(u=>{
-        const div=document.createElement('div');
-        div.style=`
-          background:#fff;padding:10px;border:1px solid #ccc;
-          margin-bottom:10px;white-space:pre-wrap;font-family:monospace;
-        `;
-        div.textContent=JSON.stringify(u,null,2);
-        cont.appendChild(div);
-      });
-    }
+   async function loadUsers() {
+  const res = await fetch('/get-users');
+  const users = await res.json();
+  const cont = document.getElementById('userCards');
+  cont.innerHTML = '';
+
+  if (!users.length) {
+    document.getElementById('noUsers').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('noUsers').style.display = 'none';
+
+  users.forEach(u => {
+    const div = document.createElement('div');
+    div.style = `
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      font-family: sans-serif;
+      font-size: 14px;
+    `;
+
+    div.innerHTML = `
+      <h3>📄 ${u.metaDocumentType || '—'} — ${u.metaDocumentNumber || '—'}</h3>
+      <p><strong>Notary Sr. No:</strong> ${u.metaNotarySrNo || '—'}</p>
+
+      <p><strong>Purchaser:</strong><br>
+      Name: ${u.purchaserName || '—'}<br>
+      Age: ${u.purchaserAge || '—'}<br>
+      Occupation: ${u.purchaserOccupation || '—'}<br>
+      Address: ${u.purchaserAddress || '—'}<br>
+      Contact: ${u.purchaserContact || '—'}<br>
+      ID No.: ${u.purchaserIdNumber || '—'}</p>
+
+      <p><strong>Seller:</strong><br>
+      Name: ${u.sellerName || '—'}<br>
+      Age: ${u.sellerAge || '—'}<br>
+      Occupation: ${u.sellerOccupation || '—'}<br>
+      Address: ${u.sellerAddress || '—'}<br>
+      Contact: ${u.sellerContact || '—'}<br>
+      ID No.: ${u.sellerIdNumber || '—'}</p>
+
+      <p><strong>Witness:</strong><br>
+      Name: ${u.witnessName || '—'}<br>
+      Age: ${u.witnessAge || '—'}<br>
+      Occupation: ${u.witnessOccupation || '—'}<br>
+      Address: ${u.witnessAddress || '—'}<br>
+      Contact: ${u.witnessContact || '—'}<br>
+      ID No.: ${u.witnessIdNumber || '—'}</p>
+
+      <p><strong>Schedule of Property:</strong> ${u.scheduleOfProperty || '—'}</p>
+      <p><strong>Consideration:</strong> ${u.consideration || '—'}</p>
+
+      <button class="delete-btn" onclick="deleteRecord(${u.id})" style="margin-top:8px;">Delete</button>
+      <button class="edit-btn" onclick='editUser(${JSON.stringify(u)})' style="margin-top:8px;margin-left:10px;">Edit</button>
+    `;
+
+    cont.appendChild(div);
+  });
+}
+
   </script>
 </body>
 </html>
