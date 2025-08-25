@@ -24,9 +24,9 @@
              border:none; width:100%; border-radius:4px; cursor:pointer; }
     #result { display:none; max-width:960px; margin:0 auto; background:#fff;
               padding:20px; border:1px solid #000; border-radius:6px; }
-    .inspector-line { text-align:center; font-weight:700; font-size:34px; margin-bottom:10px; }
+    .inspector-line { text-align:center; font-weight:700; font-size:28px; margin-bottom:16px; }
     .notary-header { text-align:center; margin-bottom:20px; }
-    .notary-header h1 { margin:0; font-size:24px; }
+    .notary-header h1 { margin:0; font-size:22px; }
     .notary-header p { margin:4px 0; font-size:14px; }
     .meta-info { margin-bottom:20px; font-size:14px; }
     .meta-info div { margin:4px 0; }
@@ -63,11 +63,12 @@
   </form>
 
   <div id="result">
-    <!-- NEW: Bold line at top -->
-    <div id="inspectorTop" class="inspector-line"><strong>Notary Authorized Adv. </strong></div>
+    <!-- TOP LINE -->
+    <div id="inspectorTop" class="inspector-line">
+      <strong>Notary Authorized Adv. </strong>
+    </div>
 
     <div class="notary-header">
-
       <p>Notary Public, Government of India</p>
       <p>N.J House, Cabin B, Hiralal Chotelal compound, Bhaji Market, Old Station Road, Kalyan (West), Thane – 421301</p>
       <p>Email: pandavarchana77@gmail.com | Phone: +91 9220574357</p>
@@ -90,17 +91,14 @@
         </tr>
       </thead>
       <tbody id="tbody_purchaser">
-        <!-- Main purchaser row (original IDs kept) -->
         <tr>
           <td id="z_purchaser"></td>
           <td><img id="z_photoP" width="200"></td>
           <td><img id="z_thumbP" width="100"></td>
           <td><div class="sig-box"></div></td>
         </tr>
-        <!-- Extra purchaser rows will be appended here -->
       </tbody>
 
-      <!-- Seller section -->
       <thead>
         <tr>
           <th id="th_seller">Executing Parties: Seller</th>
@@ -116,13 +114,11 @@
           <td><img id="z_thumbS" width="100"></td>
           <td><div class="sig-box"></div></td>
         </tr>
-        <!-- Extra seller rows will be appended here -->
       </tbody>
 
-      <!-- Witness section -->
       <thead>
         <tr>
-          <th colspan="4" style="width:25%">SIGNED AND EXECUTED BY ABOVE PARTIES IN PRESENCE OF:</th>
+          <th colspan="4">SIGNED AND EXECUTED BY ABOVE PARTIES IN PRESENCE OF:</th>
         </tr>
         <tr>
           <th id="th_witness">Executing Parties: Witness</th>
@@ -138,7 +134,6 @@
           <td><img id="z_thumbW" width="100"></td>
           <td><div class="sig-box"></div></td>
         </tr>
-        <!-- Extra witness rows will be appended here -->
       </tbody>
     </table>
 
@@ -190,9 +185,9 @@
           return;
         }
 
-        // Top inspector line
+        // Update top inspector line dynamically
         const inspector = (r.inspector_name || 'Archana Pandav').trim();
-        document.getElementById('inspectorTop').innerHTML = `<strong>In the name of ${inspector}</strong>`;
+        document.getElementById('inspectorTop').innerHTML = `<strong>Notary Authorized Adv. ${inspector}</strong>`;
 
         // Meta
         document.getElementById('z_srno').innerText=r.metaNotarySrNo||'';
@@ -208,7 +203,7 @@
         document.getElementById('th_seller').textContent    = `Executing Parties: ${tSeller}`;
         document.getElementById('th_witness').textContent   = `Executing Parties: ${tWitness}`;
 
-        // Main rows (keep original IDs)
+        // Main rows
         document.getElementById('z_purchaser').innerHTML = partyHTML(r,
           ['purchaserName','purchaserAge','purchaserOccupation','purchaserAddress','purchaserContact','purchaserIdNumber'],
           ['Name','Age','Occupation','Residing At','Contact No.','Identification']
@@ -230,10 +225,9 @@
         document.getElementById('z_photoW').src=r.photoW||'';
         document.getElementById('z_thumbW').src=r.thumbW||'';
 
-        // Clear old extra rows (if any) then append new
+        // Clear old extra rows
         ['purchaser','seller','witness'].forEach(key=>{
           const tb = document.getElementById(`tbody_${key}`);
-          // keep the first row (main) only; remove any others
           while (tb.rows.length > 1) tb.deleteRow(-1);
         });
 
@@ -270,4 +264,3 @@
   </script>
 </body>
 </html>
-
