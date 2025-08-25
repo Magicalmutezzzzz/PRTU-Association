@@ -30,7 +30,7 @@
     .capture-block { flex:1; background:#fafafa; border:1px solid #ddd;
                      border-radius:4px; padding:8px; text-align:center; }
     .capture-block video, .capture-block img, .capture-block canvas {
-      width:100%; max-height:180px; border-radius:4px; }
+      width:100%; max-height:180px; border-radius:4px; background:#000; }
     .capture-block button { margin-top:6px; padding:6px 10px; border:none;
                             background:#004080; color:#fff; border-radius:4px;
                             cursor:pointer; }
@@ -40,6 +40,20 @@
                          border-radius:4px; cursor:pointer; font-size:14px; }
     .btn-save { background:#28a745; color:#fff; }
     .btn-clear { background:#dc3545; color:#fff; }
+
+    /* Dynamic extra-person rows */
+    .extra-row { border:1px solid #e6eefc; background:#fff; border-radius:6px; padding:8px; margin:10px 0; }
+    .row-flex { display:flex; gap:8px; flex-wrap:wrap; }
+    .col-6 { flex:1 1 240px; }
+    .col-12 { flex:1 1 100%; }
+    .row-actions { display:flex; gap:8px; margin-top:6px; justify-content:flex-end; }
+    .btn-ghost { background:#fff; border:1px solid #bbb; color:#333; }
+    .btn-danger { background:#c62828; color:#fff; }
+
+    /* “Add Person” button position */
+    .add-person-wrap { text-align:right; margin-top:8px; }
+    .btn-add { padding:6px 10px; border:1px solid #004080; background:#f5f9ff; color:#004080; border-radius:4px; cursor:pointer; }
+    .btn-add:hover { background:#e7f1ff; }
   </style>
 </head>
 <body>
@@ -69,11 +83,23 @@
           <label>Type of Document:</label>
           <input id="documentTypeTop" placeholder="e.g. Sale Deed"/>
         </div>
+        <!-- NEW: Notary Inspector Name (prefilled) -->
+        <div class="field-group">
+          <label><strong>Notary Inspector Name</strong></label>
+          <input id="inspector_name" value="Archana Pandav" placeholder="Enter Notary Inspector Name"/>
+        </div>
       </div>
 
-      <!-- Purchaser -->
-      <div class="section">
-        <h2>Executing Parties — Purchaser</h2>
+      <!-- ====================== PURCHASER SECTION ====================== -->
+      <div class="section" id="purchaserSection">
+        <h2>Executing Parties — <span>Purchaser</span></h2>
+        <!-- NEW: type input for this column -->
+        <div class="field-group">
+          <label>Type for this column:</label>
+          <input id="purchaserType" value="Purchaser" placeholder="e.g., Purchaser"/>
+        </div>
+
+        <!-- Original first person fields (keep IDs) -->
         <div class="field-group"><label>Name:</label><input id="purchaserName"/></div>
         <div class="field-group"><label>Age:</label><input id="purchaserAge" type="number"/></div>
         <div class="field-group"><label>Occupation:</label><input id="purchaserOccupation"/></div>
@@ -93,11 +119,24 @@
             <img id="thumbP" style="display:none; margin-top:6px;"/>
           </div>
         </div>
+
+        <!-- NEW: dynamic extra rows container -->
+        <div id="purchaserExtraContainer"></div>
+        <!-- NEW: Add Person button directly below photo -->
+        <div class="add-person-wrap">
+          <button type="button" class="btn-add" onclick="addExtraRow('purchaser')">Add Person</button>
+        </div>
       </div>
 
-      <!-- Seller -->
-      <div class="section">
-        <h2>Executing Parties — Seller</h2>
+      <!-- ====================== SELLER SECTION ====================== -->
+      <div class="section" id="sellerSection">
+        <h2>Executing Parties — <span>Seller</span></h2>
+        <!-- NEW: type input for this column -->
+        <div class="field-group">
+          <label>Type for this column:</label>
+          <input id="sellerType" value="Seller" placeholder="e.g., Seller"/>
+        </div>
+
         <div class="field-group"><label>Name:</label><input id="sellerName"/></div>
         <div class="field-group"><label>Age:</label><input id="sellerAge" type="number"/></div>
         <div class="field-group"><label>Occupation:</label><input id="sellerOccupation"/></div>
@@ -117,11 +156,22 @@
             <img id="thumbS" style="display:none; margin-top:6px;"/>
           </div>
         </div>
+
+        <div id="sellerExtraContainer"></div>
+        <div class="add-person-wrap">
+          <button type="button" class="btn-add" onclick="addExtraRow('seller')">Add Person</button>
+        </div>
       </div>
 
-      <!-- Witness -->
-      <div class="section">
-        <h2>Witness</h2>
+      <!-- ====================== WITNESS SECTION ====================== -->
+      <div class="section" id="witnessSection">
+        <h2>Executing Parties — <span>Witness</span></h2>
+        <!-- NEW: type input for this column -->
+        <div class="field-group">
+          <label>Type for this column:</label>
+          <input id="witnessType" value="Witness" placeholder="e.g., Witness"/>
+        </div>
+
         <div class="field-group"><label>Name:</label><input id="witnessName"/></div>
         <div class="field-group"><label>Age:</label><input id="witnessAge" type="number"/></div>
         <div class="field-group"><label>Occupation:</label><input id="witnessOccupation"/></div>
@@ -141,9 +191,14 @@
             <img id="thumbW" style="display:none; margin-top:6px;"/>
           </div>
         </div>
+
+        <div id="witnessExtraContainer"></div>
+        <div class="add-person-wrap">
+          <button type="button" class="btn-add" onclick="addExtraRow('witness')">Add Person</button>
+        </div>
       </div>
 
-      <!-- Property -->
+      <!-- Document Details -->
       <div class="section">
         <h2>Document Details</h2>
         <div class="field-group"><label>Schedule of Property:</label>
@@ -181,11 +236,171 @@
     }
     function logout(){ window.location.href='login.html'; }
 
+    // Template for extra person rows
+    let extraId = 0;
+    function extraRowTemplate(key, id){
+      return `
+        <div class="extra-row" id="${key}-extra-${id}">
+          <div class="row-flex">
+            <div class="col-6">
+              <label style="font-weight:bold; display:block; margin-bottom:4px;">Name</label>
+              <input type="text" data-f="name">
+            </div>
+            <div class="col-6">
+              <label style="font-weight:bold; display:block; margin-bottom:4px;">Age</label>
+              <input type="number" data-f="age">
+            </div>
+
+            <div class="col-6">
+              <label style="font-weight:bold; display:block; margin-bottom:4px;">Occupation</label>
+              <input type="text" data-f="occupation">
+            </div>
+            <div class="col-6">
+              <label style="font-weight:bold; display:block; margin-bottom:4px;">Contact No.</label>
+              <input type="text" data-f="contact">
+            </div>
+
+            <div class="col-12">
+              <label style="font-weight:bold; display:block; margin-bottom:4px;">Residing At</label>
+              <input type="text" data-f="address">
+            </div>
+
+            <div class="col-12">
+              <label style="font-weight:bold; display:block; margin-bottom:4px;">Identification</label>
+              <input type="text" data-f="idnumber">
+            </div>
+          </div>
+
+          <div class="capture-row">
+            <div class="capture-block">
+              <strong>Photo</strong>
+              <video id="${key}-extra-${id}-video" autoplay muted playsinline></video>
+              <canvas id="${key}-extra-${id}-canvas" style="display:none"></canvas>
+              <div class="row-actions">
+                <button type="button" class="btn-ghost" onclick="startCameraExtra('${key}-extra-${id}')">Start Camera</button>
+                <button type="button" onclick="takePhotoExtra('${key}-extra-${id}')">Capture Photo</button>
+              </div>
+            </div>
+
+            <div class="capture-block">
+              <strong>Thumb Impression</strong>
+              <img id="${key}-extra-${id}-thumb" style="display:none; margin-top:6px;"/>
+              <div class="row-actions">
+                <button type="button" onclick="captureFingerprintExtra('${key}-extra-${id}')">Capture Thumb</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="row-actions">
+            <button type="button" class="btn-danger" onclick="removeExtraRow('${key}-extra-${id}')">Remove</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function addExtraRow(key){
+      extraId += 1;
+      const container = document.getElementById(key + 'ExtraContainer');
+      container.insertAdjacentHTML('beforeend', extraRowTemplate(key, extraId));
+    }
+    function removeExtraRow(rowId){
+      const el = document.getElementById(rowId);
+      if (el) el.remove();
+    }
+
+    // Extra row camera helpers
+    function startCameraExtra(rowBase){
+      const v = document.getElementById(`${rowBase}-video`);
+      if (!navigator.mediaDevices?.getUserMedia) return alert('Camera not supported');
+      navigator.mediaDevices.getUserMedia({video:true})
+        .then(s=>{ v.srcObject = s; })
+        .catch(()=>alert('Unable to start camera'));
+    }
+    function takePhotoExtra(rowBase){
+      const v = document.getElementById(`${rowBase}-video`);
+      const c = document.getElementById(`${rowBase}-canvas`);
+      if (!v || !c) return;
+      c.width = v.videoWidth || 640;
+      c.height = v.videoHeight || 480;
+      c.getContext('2d').drawImage(v,0,0,c.width,c.height);
+      c.style.display='block';
+    }
+    function captureFingerprintExtra(rowBase){
+      if(!window.CaptureFinger) return alert('SDK not running');
+      CaptureFinger(true,
+        res=>{
+          const img=document.getElementById(`${rowBase}-thumb`);
+          img.src='data:image/bmp;base64,'+res.BitmapData;
+          img.style.display='block';
+        },
+        e=>alert(e)
+      );
+    }
+
+    // Original single-block helpers (kept)
+    function takePhoto(role){
+      const v=document.getElementById('video'+role),
+            c=document.getElementById('canvas'+role);
+      c.width=v.videoWidth; c.height=v.videoHeight;
+      c.getContext('2d').drawImage(v,0,0);
+      c.style.display='block';
+    }
+    function captureFingerprint(role){
+      if(!window.CaptureFinger) return alert('SDK not running');
+      CaptureFinger(true,
+        res=>{
+          const img=document.getElementById('thumb'+role);
+          img.src='data:image/bmp;base64,'+res.BitmapData;
+          img.style.display='block';
+        },
+        e=>alert(e)
+      );
+    }
+    ['P','S','W'].forEach(r=>{
+      navigator.mediaDevices.getUserMedia({video:true})
+        .then(s=>document.getElementById('video'+r).srcObject=s)
+        .catch(()=>{/*ignore*/});
+    });
+
+    // Collect extra rows
+    function collectExtra(key){
+      const arr = [];
+      document.querySelectorAll(`#${key}ExtraContainer .extra-row`).forEach(row=>{
+        const v = sel => (row.querySelector(`[data-f="${sel}"]`)?.value || '').trim();
+        const canvas = row.querySelector('canvas');
+        const img = row.querySelector('img');
+        arr.push({
+          name: v('name'),
+          age: v('age'),
+          occupation: v('occupation'),
+          address: v('address'),
+          contact: v('contact'),
+          idnumber: v('idnumber'),
+          photo: (canvas && canvas.style.display!=='none') ? canvas.toDataURL('image/png') : '',
+          thumb: (img && img.style.display!=='none') ? img.src : ''
+        });
+      });
+      return arr;
+    }
+
     // Clear
     function clearForm(){
       document.querySelectorAll('#formTab input').forEach(i=>i.value='');
+      document.getElementById('inspector_name').value = 'Archana Pandav';
+
+      // Clear original canvases/thumbs
       document.querySelectorAll('canvas').forEach(c=>c.style.display='none');
       document.querySelectorAll('.capture-block img').forEach(i=>i.style.display='none');
+
+      // Reset types
+      document.getElementById('purchaserType').value='Purchaser';
+      document.getElementById('sellerType').value='Seller';
+      document.getElementById('witnessType').value='Witness';
+
+      // Remove extra rows
+      ['purchaser','seller','witness'].forEach(k=>{
+        document.getElementById(k+'ExtraContainer').innerHTML='';
+      });
     }
 
     // Save
@@ -196,6 +411,9 @@
         metaNotarySrNo:  document.getElementById('notarySrNoTop').value,
         metaDocumentType: document.getElementById('documentTypeTop').value,
 
+        inspector_name: document.getElementById('inspector_name').value || 'Archana Pandav',
+
+        // original single-person fields
         purchaserName: document.getElementById('purchaserName').value,
         purchaserAge:  document.getElementById('purchaserAge').value,
         purchaserOccupation: document.getElementById('purchaserOccupation').value,
@@ -223,6 +441,16 @@
         photoW: document.getElementById('canvasW').toDataURL('image/png'),
         thumbW: document.getElementById('thumbW').src,
 
+        // NEW: column type labels
+        purchaserType: document.getElementById('purchaserType').value.trim() || 'Purchaser',
+        sellerType: document.getElementById('sellerType').value.trim() || 'Seller',
+        witnessType: document.getElementById('witnessType').value.trim() || 'Witness',
+
+        // NEW: arrays of added persons for each section
+        purchaserExtra: collectExtra('purchaser'),
+        sellerExtra: collectExtra('seller'),
+        witnessExtra: collectExtra('witness'),
+
         scheduleOfProperty: document.getElementById('scheduleOfProperty').value,
         consideration: document.getElementById('consideration').value
       };
@@ -240,101 +468,76 @@
       }
     }
 
-    // Photo & thumb
-    function takePhoto(role){
-      const v=document.getElementById('video'+role),
-            c=document.getElementById('canvas'+role);
-      c.width=v.videoWidth; c.height=v.videoHeight;
-      c.getContext('2d').drawImage(v,0,0);
-      c.style.display='block';
-    }
-    function captureFingerprint(role){
-      if(!window.CaptureFinger) return alert('SDK not running');
-      CaptureFinger(true,
-        res=>{
-          const img=document.getElementById('thumb'+role);
-          img.src='data:image/bmp;base64,'+res.BitmapData;
-          img.style.display='block';
-        },
-        e=>alert(e)
-      );
-    }
-    ['P','S','W'].forEach(r=>{
-      navigator.mediaDevices.getUserMedia({video:true})
-        .then(s=>document.getElementById('video'+r).srcObject=s)
-        .catch(()=>{/*ignore*/});
-    });
     //// TODO: Open edit form or modal with pre-filled values
-    function editUser(user) {
-  alert("Edit clicked for: " + user.purchaserName);
-  
-}
+    function editUser(user) { alert("Edit clicked for: " + (user.purchaserName||'-')); }
 
-    // Load saved
-   async function loadUsers() {
-  const res = await fetch('/get-users');
-  const users = await res.json();
-  const cont = document.getElementById('userCards');
-  cont.innerHTML = '';
+    // Load saved (unchanged)
+    async function loadUsers() {
+      const res = await fetch('/get-users');
+      const users = await res.json();
+      const cont = document.getElementById('userCards');
+      cont.innerHTML = '';
 
-  if (!users.length) {
-    document.getElementById('noUsers').style.display = 'block';
-    return;
-  }
+      if (!users.length) {
+        document.getElementById('noUsers').style.display = 'block';
+        return;
+      }
 
-  document.getElementById('noUsers').style.display = 'none';
+      document.getElementById('noUsers').style.display = 'none';
 
-  users.forEach(u => {
-    const div = document.createElement('div');
-    div.style = `
-      background: #fff;
-      padding: 10px;
-      border: 1px solid #ccc;
-      margin-bottom: 10px;
-      border-radius: 6px;
-      font-family: sans-serif;
-      font-size: 14px;
-    `;
+      users.forEach(u => {
+        const div = document.createElement('div');
+        div.style = `
+          background: #fff;
+          padding: 10px;
+          border: 1px solid #ccc;
+          margin-bottom: 10px;
+          border-radius: 6px;
+          font-family: sans-serif;
+          font-size: 14px;
+        `;
 
-    div.innerHTML = `
-      <h3>📄 ${u.metaDocumentType || '—'} — ${u.metaDocumentNumber || '—'}</h3>
-      <p><strong>Notary Sr. No:</strong> ${u.metaNotarySrNo || '—'}</p>
+        const listExtras = (type, arr) => {
+          if (!Array.isArray(arr) || !arr.length) return '';
+          return `<p><strong>${type} (extra):</strong> ` +
+                 arr.map(p => [p.name, p.contact].filter(Boolean).join(' — ')).join(', ') +
+                 `</p>`;
+        };
 
-      <p><strong>Purchaser:</strong><br>
-      Name: ${u.purchaserName || '—'}<br>
-      Age: ${u.purchaserAge || '—'}<br>
-      Occupation: ${u.purchaserOccupation || '—'}<br>
-      Address: ${u.purchaserAddress || '—'}<br>
-      Contact: ${u.purchaserContact || '—'}<br>
-      ID No.: ${u.purchaserIdNumber || '—'}</p>
+        div.innerHTML = `
+          <h3>📄 ${u.metaDocumentType || '—'} — ${u.metaDocumentNumber || '—'}</h3>
+          <p><strong>Notary Sr. No:</strong> ${u.metaNotarySrNo || '—'}</p>
+          ${u.inspector_name ? `<p><strong>Inspector:</strong> ${u.inspector_name}</p>` : ''}
 
-      <p><strong>Seller:</strong><br>
-      Name: ${u.sellerName || '—'}<br>
-      Age: ${u.sellerAge || '—'}<br>
-      Occupation: ${u.sellerOccupation || '—'}<br>
-      Address: ${u.sellerAddress || '—'}<br>
-      Contact: ${u.sellerContact || '—'}<br>
-      ID No.: ${u.sellerIdNumber || '—'}</p>
+          <p><strong>${u.purchaserType || 'Purchaser'} (main):</strong><br>
+          ${[u.purchaserName,u.purchaserAge,u.purchaserOccupation,u.purchaserAddress,u.purchaserContact,u.purchaserIdNumber].some(Boolean)
+            ? `Name: ${u.purchaserName || '—'}; Age: ${u.purchaserAge || '—'}; Occ: ${u.purchaserOccupation || '—'}; Addr: ${u.purchaserAddress || '—'}; Contact: ${u.purchaserContact || '—'}; ID: ${u.purchaserIdNumber || '—'}`
+            : '—'}</p>
 
-      <p><strong>Witness:</strong><br>
-      Name: ${u.witnessName || '—'}<br>
-      Age: ${u.witnessAge || '—'}<br>
-      Occupation: ${u.witnessOccupation || '—'}<br>
-      Address: ${u.witnessAddress || '—'}<br>
-      Contact: ${u.witnessContact || '—'}<br>
-      ID No.: ${u.witnessIdNumber || '—'}</p>
+          <p><strong>${u.sellerType || 'Seller'} (main):</strong><br>
+          ${[u.sellerName,u.sellerAge,u.sellerOccupation,u.sellerAddress,u.sellerContact,u.sellerIdNumber].some(Boolean)
+            ? `Name: ${u.sellerName || '—'}; Age: ${u.sellerAge || '—'}; Occ: ${u.sellerOccupation || '—'}; Addr: ${u.sellerAddress || '—'}; Contact: ${u.sellerContact || '—'}; ID: ${u.sellerIdNumber || '—'}`
+            : '—'}</p>
 
-      <p><strong>Schedule of Property:</strong> ${u.scheduleOfProperty || '—'}</p>
-      <p><strong>Consideration:</strong> ${u.consideration || '—'}</p>
+          <p><strong>${u.witnessType || 'Witness'} (main):</strong><br>
+          ${[u.witnessName,u.witnessAge,u.witnessOccupation,u.witnessAddress,u.witnessContact,u.witnessIdNumber].some(Boolean)
+            ? `Name: ${u.witnessName || '—'}; Age: ${u.witnessAge || '—'}; Occ: ${u.witnessOccupation || '—'}; Addr: ${u.witnessAddress || '—'}; Contact: ${u.witnessContact || '—'}; ID: ${u.witnessIdNumber || '—'}`
+            : '—'}</p>
 
-      <button class="delete-btn" onclick="deleteRecord(${u.id})" style="margin-top:8px;">Delete</button>
-      <button class="edit-btn" onclick='editUser(${JSON.stringify(u)})' style="margin-top:8px;margin-left:10px;">Edit</button>
-    `;
+          ${listExtras(u.purchaserType || 'Purchaser', u.purchaserExtra)}
+          ${listExtras(u.sellerType || 'Seller', u.sellerExtra)}
+          ${listExtras(u.witnessType || 'Witness', u.witnessExtra)}
 
-    cont.appendChild(div);
-  });
-}
+          <p><strong>Schedule of Property:</strong> ${u.scheduleOfProperty || '—'}</p>
+          <p><strong>Consideration:</strong> ${u.consideration || '—'}</p>
 
+          <button class="delete-btn" onclick="deleteRecord(${u.id})" style="margin-top:8px;">Delete</button>
+          <button class="edit-btn" onclick='editUser(${JSON.stringify(u)})' style="margin-top:8px;margin-left:10px;">Edit</button>
+        `;
+
+        cont.appendChild(div);
+      });
+    }
   </script>
 </body>
 </html>
