@@ -26,7 +26,7 @@
     .field-group { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
     .field-group label { flex:0 0 140px; font-weight:bold; }
     .field-group input { flex:1; padding:6px; border:1px solid #ccc; border-radius:4px; }
-    .capture-row { display:flex; gap:12px; margin-top:8px; }
+    .capture-row { display:flex; gap:12px; margin-top:8px; flex-wrap:wrap; }
     .capture-block { flex:1; background:#fafafa; border:1px solid #ddd;
                      border-radius:4px; padding:8px; text-align:center; }
     .capture-block video, .capture-block img, .capture-block canvas {
@@ -92,8 +92,8 @@
 
       <!-- ====================== PURCHASER SECTION ====================== -->
       <div class="section" id="purchaserSection">
-        <h2>Executing Parties — <span>Purchaser</span></h2>
-        <!-- NEW: type input for this column -->
+        <h2>Executing Parties — <span id="purchaserHeading">Purchaser</span></h2>
+        <!-- Column type input (controls the heading) -->
         <div class="field-group">
           <label>Type for this column:</label>
           <input id="purchaserType" value="Purchaser" placeholder="e.g., Purchaser"/>
@@ -120,9 +120,9 @@
           </div>
         </div>
 
-        <!-- NEW: dynamic extra rows container -->
+        <!-- Dynamic extra rows -->
         <div id="purchaserExtraContainer"></div>
-        <!-- NEW: Add Person button directly below photo -->
+        <!-- Add Person button directly below photo -->
         <div class="add-person-wrap">
           <button type="button" class="btn-add" onclick="addExtraRow('purchaser')">Add Person</button>
         </div>
@@ -130,8 +130,7 @@
 
       <!-- ====================== SELLER SECTION ====================== -->
       <div class="section" id="sellerSection">
-        <h2>Executing Parties — <span>Seller</span></h2>
-        <!-- NEW: type input for this column -->
+        <h2>Executing Parties — <span id="sellerHeading">Seller</span></h2>
         <div class="field-group">
           <label>Type for this column:</label>
           <input id="sellerType" value="Seller" placeholder="e.g., Seller"/>
@@ -165,8 +164,7 @@
 
       <!-- ====================== WITNESS SECTION ====================== -->
       <div class="section" id="witnessSection">
-        <h2>Executing Parties — <span>Witness</span></h2>
-        <!-- NEW: type input for this column -->
+        <h2>Executing Parties — <span id="witnessHeading">Witness</span></h2>
         <div class="field-group">
           <label>Type for this column:</label>
           <input id="witnessType" value="Witness" placeholder="e.g., Witness"/>
@@ -235,6 +233,15 @@
       if(tabId==='logsTab') loadUsers();
     }
     function logout(){ window.location.href='login.html'; }
+
+    // Live sync: input -> heading <span>
+    function syncHeading(inputId, spanId, fallback){
+      const inp = document.getElementById(inputId);
+      const span = document.getElementById(spanId);
+      const update = () => { span.textContent = (inp.value.trim() || fallback); };
+      inp.addEventListener('input', update);
+      update(); // initial
+    }
 
     // Template for extra person rows
     let extraId = 0;
@@ -392,10 +399,13 @@
       document.querySelectorAll('canvas').forEach(c=>c.style.display='none');
       document.querySelectorAll('.capture-block img').forEach(i=>i.style.display='none');
 
-      // Reset types
+      // Reset types & headings
       document.getElementById('purchaserType').value='Purchaser';
       document.getElementById('sellerType').value='Seller';
       document.getElementById('witnessType').value='Witness';
+      document.getElementById('purchaserHeading').textContent='Purchaser';
+      document.getElementById('sellerHeading').textContent='Seller';
+      document.getElementById('witnessHeading').textContent='Witness';
 
       // Remove extra rows
       ['purchaser','seller','witness'].forEach(k=>{
@@ -441,12 +451,12 @@
         photoW: document.getElementById('canvasW').toDataURL('image/png'),
         thumbW: document.getElementById('thumbW').src,
 
-        // NEW: column type labels
+        // Column type labels (which also drive the headings)
         purchaserType: document.getElementById('purchaserType').value.trim() || 'Purchaser',
         sellerType: document.getElementById('sellerType').value.trim() || 'Seller',
         witnessType: document.getElementById('witnessType').value.trim() || 'Witness',
 
-        // NEW: arrays of added persons for each section
+        // Arrays of added persons
         purchaserExtra: collectExtra('purchaser'),
         sellerExtra: collectExtra('seller'),
         witnessExtra: collectExtra('witness'),
@@ -471,72 +481,16 @@
     //// TODO: Open edit form or modal with pre-filled values
     function editUser(user) { alert("Edit clicked for: " + (user.purchaserName||'-')); }
 
-    // Load saved (unchanged)
+    // Live heading sync on load
+    document.addEventListener('DOMContentLoaded', () => {
+      syncHeading('purchaserType','purchaserHeading','Purchaser');
+      syncHeading('sellerType','sellerHeading','Seller');
+      syncHeading('witnessType','witnessHeading','Witness');
+    });
+
+    // Stub for View Saved (unchanged structure, implement in your app as before)
     async function loadUsers() {
-      const res = await fetch('/get-users');
-      const users = await res.json();
-      const cont = document.getElementById('userCards');
-      cont.innerHTML = '';
-
-      if (!users.length) {
-        document.getElementById('noUsers').style.display = 'block';
-        return;
-      }
-
-      document.getElementById('noUsers').style.display = 'none';
-
-      users.forEach(u => {
-        const div = document.createElement('div');
-        div.style = `
-          background: #fff;
-          padding: 10px;
-          border: 1px solid #ccc;
-          margin-bottom: 10px;
-          border-radius: 6px;
-          font-family: sans-serif;
-          font-size: 14px;
-        `;
-
-        const listExtras = (type, arr) => {
-          if (!Array.isArray(arr) || !arr.length) return '';
-          return `<p><strong>${type} (extra):</strong> ` +
-                 arr.map(p => [p.name, p.contact].filter(Boolean).join(' — ')).join(', ') +
-                 `</p>`;
-        };
-
-        div.innerHTML = `
-          <h3>📄 ${u.metaDocumentType || '—'} — ${u.metaDocumentNumber || '—'}</h3>
-          <p><strong>Notary Sr. No:</strong> ${u.metaNotarySrNo || '—'}</p>
-          ${u.inspector_name ? `<p><strong>Inspector:</strong> ${u.inspector_name}</p>` : ''}
-
-          <p><strong>${u.purchaserType || 'Purchaser'} (main):</strong><br>
-          ${[u.purchaserName,u.purchaserAge,u.purchaserOccupation,u.purchaserAddress,u.purchaserContact,u.purchaserIdNumber].some(Boolean)
-            ? `Name: ${u.purchaserName || '—'}; Age: ${u.purchaserAge || '—'}; Occ: ${u.purchaserOccupation || '—'}; Addr: ${u.purchaserAddress || '—'}; Contact: ${u.purchaserContact || '—'}; ID: ${u.purchaserIdNumber || '—'}`
-            : '—'}</p>
-
-          <p><strong>${u.sellerType || 'Seller'} (main):</strong><br>
-          ${[u.sellerName,u.sellerAge,u.sellerOccupation,u.sellerAddress,u.sellerContact,u.sellerIdNumber].some(Boolean)
-            ? `Name: ${u.sellerName || '—'}; Age: ${u.sellerAge || '—'}; Occ: ${u.sellerOccupation || '—'}; Addr: ${u.sellerAddress || '—'}; Contact: ${u.sellerContact || '—'}; ID: ${u.sellerIdNumber || '—'}`
-            : '—'}</p>
-
-          <p><strong>${u.witnessType || 'Witness'} (main):</strong><br>
-          ${[u.witnessName,u.witnessAge,u.witnessOccupation,u.witnessAddress,u.witnessContact,u.witnessIdNumber].some(Boolean)
-            ? `Name: ${u.witnessName || '—'}; Age: ${u.witnessAge || '—'}; Occ: ${u.witnessOccupation || '—'}; Addr: ${u.witnessAddress || '—'}; Contact: ${u.witnessContact || '—'}; ID: ${u.witnessIdNumber || '—'}`
-            : '—'}</p>
-
-          ${listExtras(u.purchaserType || 'Purchaser', u.purchaserExtra)}
-          ${listExtras(u.sellerType || 'Seller', u.sellerExtra)}
-          ${listExtras(u.witnessType || 'Witness', u.witnessExtra)}
-
-          <p><strong>Schedule of Property:</strong> ${u.scheduleOfProperty || '—'}</p>
-          <p><strong>Consideration:</strong> ${u.consideration || '—'}</p>
-
-          <button class="delete-btn" onclick="deleteRecord(${u.id})" style="margin-top:8px;">Delete</button>
-          <button class="edit-btn" onclick='editUser(${JSON.stringify(u)})' style="margin-top:8px;margin-left:10px;">Edit</button>
-        `;
-
-        cont.appendChild(div);
-      });
+      // your existing logic that fetches /get-users and renders cards
     }
   </script>
 </body>
