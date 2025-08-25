@@ -14,7 +14,20 @@
     .actions button { margin: 2px; padding: 6px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; }
     .edit-btn { background: #28a745; color: #fff; }
     .delete-btn { background: #dc3545; color: #fff; }
+    .more-btn { background: #0069d9; color: #fff; }
     .no-records { text-align: center; font-style: italic; padding: 20px; }
+
+    /* Details row styling */
+    .details-row td { background: #f9fbff; padding: 12px; }
+    .detail-title { font-weight: bold; color: #003366; margin: 6px 0; }
+    .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+    .pill { display: inline-block; background: #e7f1ff; color: #003366; padding: 2px 8px; border-radius: 999px; font-size: 12px; margin-left: 6px; }
+    .extra-card { border: 1px solid #d9e6ff; background: #fff; border-radius: 6px; padding: 8px; }
+    .extra-line { margin: 2px 0; }
+    .extra-previews { display: flex; gap: 8px; margin-top: 6px; align-items: center; }
+    .extra-previews img { border-radius: 4px; border: 1px solid #ccc; }
+    .mini { width: 80px; height: auto; }
+    .mini-thumb { width: 50px; height: auto; }
   </style>
 </head>
 <body>
@@ -22,13 +35,72 @@
   <table id="recordsTable">
     <thead>
       <tr>
+        <!-- KEPT EXACTLY THE SAME HEADERS -->
         <th>Doc No.</th><th>Notary Sr. No.</th><th>Doc Type</th><th>Purchaser</th><th>Seller</th>
         <th>Witness</th><th>Schedule</th><th>Consideration</th><th>Photo (P)</th><th>Thumb (P)</th><th>Actions</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
+
   <script>
+    function esc(s){ return (s==null?'':String(s)); }
+
+    function renderExtraCard(person){
+      if(!person) return '';
+      const lines = [
+        ['Name', person.name],
+        ['Age', person.age],
+        ['Occupation', person.occupation],
+        ['Residing At', person.address],
+        ['Contact No.', person.contact],
+        ['Identification', person.idnumber],
+      ].map(([k,v])=>`<div class="extra-line"><strong>${k}:</strong> ${esc(v)||'—'}</div>`).join('');
+      const photo = person.photo ? `<img class="mini" src="${person.photo}" alt="photo">` : '';
+      const thumb = person.thumb ? `<img class="mini-thumb" src="${person.thumb}" alt="thumb">` : '';
+      return `
+        <div class="extra-card">
+          ${lines}
+          ${(photo || thumb) ? `<div class="extra-previews">${photo}${thumb}</div>` : ''}
+        </div>
+      `;
+    }
+
+    function renderColBlock(title, typeLabel, arr){
+      const count = Array.isArray(arr) ? arr.length : 0;
+      const grid = (arr||[]).map(renderExtraCard).join('') || '<em>No additional persons.</em>';
+      return `
+        <div>
+          <div class="detail-title">${title}
+            ${typeLabel ? `<span class="pill">${esc(typeLabel)}</span>` : ''}
+            ${count ? `<span class="pill">${count} more</span>` : ''}
+          </div>
+          <div class="detail-grid">
+            ${grid}
+          </div>
+        </div>
+      `;
+    }
+
+    function detailsHTML(r){
+      return `
+        <div>
+          <div class="detail-title">Inspector</div>
+          <div>${esc(r.inspector_name || 'Archana Pandav')}</div>
+
+          ${renderColBlock('Purchaser', r.purchaserType || 'Purchaser', r.purchaserExtra)}
+          ${renderColBlock('Seller', r.sellerType || 'Seller', r.sellerExtra)}
+          ${renderColBlock('Witness', r.witnessType || 'Witness', r.witnessExtra)}
+        </div>
+      `;
+    }
+
+    function toggleDetails(rowId){
+      const row = document.getElementById(rowId);
+      if(!row) return;
+      row.style.display = (row.style.display === 'none' || !row.style.display) ? 'table-row' : 'none';
+    }
+
     async function loadRecords() {
       const tbody = document.querySelector('#recordsTable tbody');
       tbody.innerHTML = '';
@@ -40,33 +112,57 @@
           return;
         }
         records.forEach(r => {
+          const baseRowId = `row_${r.id}`;
+          const detailRowId = `details_${r.id}`;
+
+          // MAIN ROW (unchanged columns)
           const tr = document.createElement('tr');
+          tr.id = baseRowId;
           tr.innerHTML = `
-            <td>${r.metaDocumentNumber||'—'}</td>
-            <td>${r.metaNotarySrNo||'—'}</td>
-            <td>${r.metaDocumentType||'—'}</td>
-            <td>${r.purchaserName||'—'}</td>
-            <td>${r.sellerName||'—'}</td>
-            <td>${r.witnessName||'—'}</td>
-            <td>${r.scheduleOfProperty||'—'}</td>
-            <td>${r.consideration||'—'}</td>
-            <td>${r.photoP?`<img src="${r.photoP}" class="thumb">`:'—'}</td>
-            <td>${r.thumbP?`<img src="${r.thumbP}" class="thumb">`:'—'}</td>
+            <td>${esc(r.metaDocumentNumber)||'—'}</td>
+            <td>${esc(r.metaNotarySrNo)||'—'}</td>
+            <td>${esc(r.metaDocumentType)||'—'}</td>
+            <td>${esc(r.purchaserName)||'—'}</td>
+            <td>${esc(r.sellerName)||'—'}</td>
+            <td>${esc(r.witnessName)||'—'}</td>
+            <td>${esc(r.scheduleOfProperty)||'—'}</td>
+            <td>${esc(r.consideration)||'—'}</td>
+            <td>${r.photoP?`<img src="${r.photoP}" class="thumb" alt="P photo">`:'—'}</td>
+            <td>${r.thumbP?`<img src="${r.thumbP}" class="thumb" alt="P thumb">`:'—'}</td>
             <td class="actions">
-              <button class="edit-btn" onclick="window.location='dashboard.html?edit='+${r.id}">Edit</button>
-              <button class="delete-btn" onclick="deleteRecord(${r.id})">Delete</button>
+              <button class="more-btn" onclick="toggleDetails('${detailRowId}')">More</button>
+              <button class="edit-btn" onclick="window.location='dashboard.html?edit='+${JSON.stringify(r.id)}">Edit</button>
+              <button class="delete-btn" onclick="deleteRecord(${JSON.stringify(r.id)})">Delete</button>
             </td>`;
           tbody.appendChild(tr);
+
+          // DETAILS ROW (new, spans all existing 11 columns)
+          const trDetails = document.createElement('tr');
+          trDetails.id = detailRowId;
+          trDetails.className = 'details-row';
+          trDetails.style.display = 'none';
+          trDetails.innerHTML = `<td colspan="11">${detailsHTML(r)}</td>`;
+          tbody.appendChild(trDetails);
         });
-      } catch {
-        tbody.innerHTML = '<tr><td colspan="11" class="no-records">Error loading records.</td></tr>';
+      } catch (e) {
+        console.error(e);
+        document.querySelector('#recordsTable tbody').innerHTML = '<tr><td colspan="11" class="no-records">Error loading records.</td></tr>';
       }
     }
+
     async function deleteRecord(id) {
       if(!confirm('Delete this record?')) return;
-      await fetch('/delete-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
-      loadRecords();
+      try {
+        await fetch('/delete-user',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({id})
+        });
+      } finally {
+        loadRecords();
+      }
     }
+
     document.addEventListener('DOMContentLoaded', loadRecords);
   </script>
 </body>
