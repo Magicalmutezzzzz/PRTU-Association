@@ -33,16 +33,21 @@
     .meta-info div { margin:2px 0; min-width:220px; }
 
     /* Table */
-    .exec-table { width:100%; border-collapse:collapse; margin-bottom:8px; font-size:12px; }
-    .exec-table th,.exec-table td{ border:1px solid #000; padding:6px; vertical-align:top; }
-    .exec-table th { background:#e9e9e9; text-align:left; font-size:13px; }
-    .sig-box { width:100%; height:64px; border-bottom:1px solid #000; }
+    .exec-table { width:100%; border-collapse:collapse; margin-bottom:8px; font-size:14px; } /* increased font-size */
+    .exec-table th,.exec-table td{ border:1px solid #000; padding:8px; vertical-align:top; font-size:14px; } /* larger inside table */
+    .exec-table th { background:#e9e9e9; text-align:left; font-size:14px; }
+    /* narrower columns: photo, thumb, signature */
+    .exec-table th.photo-col, .exec-table td.photo-col { width:14%; }
+    .exec-table th.thumb-col, .exec-table td.thumb-col { width:12%; }
+    .exec-table th.sig-col, .exec-table td.sig-col { width:18%; }
+
+    .sig-box { width:80%; height:96px; border-bottom:1px solid #000; margin:6px auto 0; } /* narrower but taller and centered */
     .contents,.schedule,.consideration{ border:1px solid #000; padding:6px; margin-bottom:6px; font-size:13px; }
     .contents strong,.schedule strong,.consideration strong{ display:block; margin-bottom:4px; }
 
     /* Image constraints to help fit onto one page */
     img{ max-width:100%; height:auto; display:block; }
-    td img{ max-width:160px; }
+    td img{ max-width:120px; } /* decreased from 160 to 120 */
 
     /* Print button */
     #printBtn{ background:green; color:#fff; padding:8px 14px; border:none; border-radius:4px; cursor:pointer; display:block; margin:12px auto; }
@@ -59,8 +64,8 @@
       .inspector-line{ font-size:18px; margin-bottom:4px; }
       .notary-header p{ font-size:11px; }
       .meta-info{ gap:6px; }
-      .exec-table th,.exec-table td{ padding:5px; font-size:11px; }
-      .sig-box{ height:56px; }
+      .exec-table th,.exec-table td{ padding:6px; font-size:13px; }
+      .sig-box{ height:92px; }
       /* Help force everything to fit on a single page — browsers differ; adjust scale if necessary */
       html,body{height:100%}
       /* Use a subtle scale on print to encourage single-page fit. If overflow occurs, user can set 'Shrink to fit' in print dialog. */
@@ -70,7 +75,10 @@
     /* Small-screen adjustments */
     @media (max-width:720px){
       .meta-info div{ min-width:160px; }
-      td img{ max-width:120px; }
+      td img{ max-width:100px; }
+      .exec-table { font-size:13px; }
+      .exec-table th,.exec-table td{ padding:6px; }
+      .sig-box{ height:80px; width:90%; }
     }
   </style>
 </head>
@@ -115,35 +123,35 @@
     <table class="exec-table">
       <thead>
         <tr>
-          <th style="width:35%" id="th_purchaser">Executing Parties: Purchaser</th>
-          <th style="width:20%">Digital Photo</th>
-          <th style="width:20%">Thumb Impression</th>
-          <th style="width:25%">Signature</th>
+          <th style="width:36%" id="th_purchaser">Executing Parties: Purchaser</th>
+          <th class="photo-col">Digital Photo</th>
+          <th class="thumb-col">Thumb Impression</th>
+          <th class="sig-col">Signature</th>
         </tr>
       </thead>
       <tbody id="tbody_purchaser">
         <tr>
           <td id="z_purchaser"></td>
-          <td><img id="z_photoP" width="200" alt="Photo Purchaser"></td>
-          <td><img id="z_thumbP" width="100" alt="Thumb Purchaser"></td>
-          <td><div class="sig-box"></div></td>
+          <td class="photo-col"><img id="z_photoP" alt="Photo Purchaser"></td>
+          <td class="thumb-col"><img id="z_thumbP" alt="Thumb Purchaser"></td>
+          <td class="sig-col"><div class="sig-box"></div></td>
         </tr>
       </tbody>
 
       <thead>
         <tr>
           <th id="th_seller">Executing Parties: Seller</th>
-          <th>Digital Photo</th>
-          <th>Thumb Impression</th>
-          <th>Signature</th>
+          <th class="photo-col">Digital Photo</th>
+          <th class="thumb-col">Thumb Impression</th>
+          <th class="sig-col">Signature</th>
         </tr>
       </thead>
       <tbody id="tbody_seller">
         <tr>
           <td id="z_seller"></td>
-          <td><img id="z_photoS" width="200" alt="Photo Seller"></td>
-          <td><img id="z_thumbS" width="100" alt="Thumb Seller"></td>
-          <td><div class="sig-box"></div></td>
+          <td class="photo-col"><img id="z_photoS" alt="Photo Seller"></td>
+          <td class="thumb-col"><img id="z_thumbS" alt="Thumb Seller"></td>
+          <td class="sig-col"><div class="sig-box"></div></td>
         </tr>
       </tbody>
 
@@ -153,17 +161,17 @@
         </tr>
         <tr>
           <th id="th_witness">Executing Parties: Witness</th>
-          <th>Digital Photo</th>
-          <th>Thumb Impression</th>
-          <th>Signature</th>
+          <th class="photo-col">Digital Photo</th>
+          <th class="thumb-col">Thumb Impression</th>
+          <th class="sig-col">Signature</th>
         </tr>
       </thead>
       <tbody id="tbody_witness">
         <tr>
           <td id="z_witness"></td>
-          <td><img id="z_photoW" width="200" alt="Photo Witness"></td>
-          <td><img id="z_thumbW" width="100" alt="Thumb Witness"></td>
-          <td><div class="sig-box"></div></td>
+          <td class="photo-col"><img id="z_photoW" alt="Photo Witness"></td>
+          <td class="thumb-col"><img id="z_thumbW" alt="Thumb Witness"></td>
+          <td class="sig-col"><div class="sig-box"></div></td>
         </tr>
       </tbody>
     </table>
@@ -176,6 +184,7 @@
 
   <script>
     function partyHTML(r, keys, labels){
+      // build only the requested fields (contact removed)
       return keys.map((k,i)=>`<div><strong>${labels[i]}:</strong> ${r[k]||'—'}</div>`).join('');
     }
 
@@ -185,17 +194,16 @@
         ['Age','age'],
         ['Occupation','occupation'],
         ['Residing At','address'],
-        ['Contact No.','contact'],
         ['Identification','idnumber'],
       ].map(([label,key]) => `<div><strong>${label}:</strong> ${person?.[key] || '—'}</div>`).join('');
-      const photo = person?.photo ? `<img src="${person.photo}" width="160">` : '';
-      const thumb = person?.thumb ? `<img src="${person.thumb}" width="100">` : '';
+      const photo = person?.photo ? `<img src="${person.photo}" style="max-width:120px">` : '';
+      const thumb = person?.thumb ? `<img src="${person.thumb}" style="max-width:100px">` : '';
       return `
         <tr>
           <td>${details}</td>
-          <td>${photo}</td>
-          <td>${thumb}</td>
-          <td><div class="sig-box"></div></td>
+          <td class="photo-col">${photo}</td>
+          <td class="thumb-col">${thumb}</td>
+          <td class="sig-col"><div class="sig-box"></div></td>
         </tr>`;
     }
 
@@ -247,24 +255,24 @@
         document.getElementById('th_seller').textContent    = `Executing Parties: ${tSeller}`;
         document.getElementById('th_witness').textContent   = `Executing Parties: ${tWitness}`;
 
-        // Main rows
+        // Main rows — contact removed from keys
         document.getElementById('z_purchaser').innerHTML = partyHTML(r,
-          ['purchaserName','purchaserAge','purchaserOccupation','purchaserAddress','purchaserContact','purchaserIdNumber'],
-          ['Name','Age','Occupation','Residing At','Contact No.','Identification']
+          ['purchaserName','purchaserAge','purchaserOccupation','purchaserAddress','purchaserIdNumber'],
+          ['Name','Age','Occupation','Residing At','Identification']
         );
         document.getElementById('z_photoP').src=r.photoP||'';
         document.getElementById('z_thumbP').src=r.thumbP||'';
 
         document.getElementById('z_seller').innerHTML = partyHTML(r,
-          ['sellerName','sellerAge','sellerOccupation','sellerAddress','sellerContact','sellerIdNumber'],
-          ['Name','Age','Occupation','Residing At','Contact No.','Identification']
+          ['sellerName','sellerAge','sellerOccupation','sellerAddress','sellerIdNumber'],
+          ['Name','Age','Occupation','Residing At','Identification']
         );
         document.getElementById('z_photoS').src=r.photoS||'';
         document.getElementById('z_thumbS').src=r.thumbS||'';
 
         document.getElementById('z_witness').innerHTML = partyHTML(r,
-          ['witnessName','witnessAge','witnessOccupation','witnessAddress','witnessContact','witnessIdNumber'],
-          ['Name','Age','Occupation','Residing At','Contact No.','Identification']
+          ['witnessName','witnessAge','witnessOccupation','witnessAddress','witnessIdNumber'],
+          ['Name','Age','Occupation','Residing At','Identification']
         );
         document.getElementById('z_photoW').src=r.photoW||'';
         document.getElementById('z_thumbW').src=r.thumbW||'';
