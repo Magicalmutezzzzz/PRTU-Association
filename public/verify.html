@@ -5,43 +5,72 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Verify & Print Sale Deed – PRTU</title>
   <style>
-    body { font-family:Arial,sans-serif; background:#f3f6f8; margin:0; padding:20px; }
-    h2 { text-align:center; color:#003366; margin-bottom:20px; }
-    .flash-msg { display:none; max-width:500px; margin:0 auto 20px;
-                 padding:10px; background:#ffe5e5; color:#cc0000;
-                 border:1px solid #cc0000; border-radius:5px; text-align:center; }
-    form { max-width:400px; margin:0 auto 30px; background:#fff; padding:20px;
-           border-radius:8px; box-shadow:0 0 5px rgba(0,0,0,0.1); }
-    .top-bar { position:absolute; top:20px; right:20px; }
-    .home-btn { background:#004080; color:#fff; padding:8px 12px;
-                border-radius:4px; text-decoration:none; }
+    /* Page / general layout */
+    html,body{height:100%;}
+    body { font-family:Arial,sans-serif; background:#f3f6f8; margin:0; padding:10px 12px 20px; }
+    h2 { text-align:center; color:#003366; margin:6px 0 12px; font-size:20px; }
+
+    /* Flash message */
+    .flash-msg { display:none; max-width:680px; margin:0 auto 12px; padding:8px; background:#ffe5e5; color:#cc0000; border:1px solid #cc0000; border-radius:5px; text-align:center; font-size:13px; }
+
+    /* Form */
+    form { max-width:420px; margin:0 auto 12px; background:#fff; padding:12px; border-radius:8px; box-shadow:0 0 5px rgba(0,0,0,0.06); }
+    .top-bar { position:absolute; top:8px; right:12px; }
+    .home-btn { background:#004080; color:#fff; padding:6px 10px; border-radius:4px; text-decoration:none; font-size:13px; }
     .home-btn:hover { background:#0066cc; }
-    
-    label { display:block; margin-top:10px; font-weight:bold; }
-    input { width:100%; padding:8px; margin-top:5px; border:1px solid #ccc;
-            border-radius:4px; font-size:14px; }
-    button { margin-top:15px; padding:10px; background:#003366; color:#fff;
-             border:none; width:100%; border-radius:4px; cursor:pointer; }
-    #result { display:none; max-width:960px; margin:0 auto; background:#fff;
-              padding:20px; border:1px solid #000; border-radius:6px; }
-    .inspector-line { text-align:center; font-weight:700; font-size:28px; margin-bottom:16px; }
-    .notary-header { text-align:center; margin-bottom:20px; }
-    .notary-header h1 { margin:0; font-size:22px; }
-    .notary-header p { margin:4px 0; font-size:14px; }
-    .meta-info { margin-bottom:20px; font-size:14px; }
-    .meta-info div { margin:4px 0; }
-    .exec-table { width:100%; border-collapse:collapse; margin-bottom:20px; }
-    .exec-table th,.exec-table td{ border:1px solid #000; padding:8px; vertical-align:top; }
-    .exec-table th { background:#e0e0e0; text-align:left; }
-    .sig-box { width:100%; height:80px; border-bottom:1px solid #000; }
-    .contents,.schedule,.consideration{ border:1px solid #000; padding:8px; margin-bottom:10px; }
+
+    label { display:block; margin-top:8px; font-weight:700; font-size:13px; }
+    input { width:100%; padding:7px; margin-top:6px; border:1px solid #ccc; border-radius:4px; font-size:13px; }
+    button { margin-top:12px; padding:9px; background:#003366; color:#fff; border:none; width:100%; border-radius:4px; cursor:pointer; font-size:14px; }
+
+    /* Result / printable card */
+    #result { display:none; max-width:960px; margin:6px auto; background:#fff; padding:10px; border:1px solid #000; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.06); }
+    .inspector-line { text-align:center; font-weight:700; font-size:20px; margin-bottom:8px; }
+    .notary-header { text-align:center; margin-bottom:8px; }
+    .notary-header h1 { margin:0; font-size:18px; }
+    .notary-header p { margin:3px 0; font-size:12px; }
+    .meta-info { margin-bottom:8px; font-size:13px; display:flex; flex-wrap:wrap; gap:8px; }
+    .meta-info div { margin:2px 0; min-width:220px; }
+
+    /* Table */
+    .exec-table { width:100%; border-collapse:collapse; margin-bottom:8px; font-size:12px; }
+    .exec-table th,.exec-table td{ border:1px solid #000; padding:6px; vertical-align:top; }
+    .exec-table th { background:#e9e9e9; text-align:left; font-size:13px; }
+    .sig-box { width:100%; height:64px; border-bottom:1px solid #000; }
+    .contents,.schedule,.consideration{ border:1px solid #000; padding:6px; margin-bottom:6px; font-size:13px; }
     .contents strong,.schedule strong,.consideration strong{ display:block; margin-bottom:4px; }
-    #printBtn{ background:green; color:#fff; padding:10px 20px; border:none;
-               border-radius:4px; cursor:pointer; display:block; margin:20px auto; }
+
+    /* Image constraints to help fit onto one page */
+    img{ max-width:100%; height:auto; display:block; }
+    td img{ max-width:160px; }
+
+    /* Print button */
+    #printBtn{ background:green; color:#fff; padding:8px 14px; border:none; border-radius:4px; cursor:pointer; display:block; margin:12px auto; }
+
+    /* Reduce spacing for compact print/layout */
+    .compact { line-height:1.05; }
+
+    /* Keep result as single printed block and small top margin */
     @media print {
-      form,#printBtn,.flash-msg { display:none!important; }
+      @page { size: A4 portrait; margin:6mm; }
       body { background:#fff; padding:0; }
-      #result { border:none; box-shadow:none; margin:0; padding:0; }
+      form,#printBtn,.flash-msg,.top-bar { display:none!important; }
+      #result { border:none; box-shadow:none; margin:0; padding:2mm; }
+      .inspector-line{ font-size:18px; margin-bottom:4px; }
+      .notary-header p{ font-size:11px; }
+      .meta-info{ gap:6px; }
+      .exec-table th,.exec-table td{ padding:5px; font-size:11px; }
+      .sig-box{ height:56px; }
+      /* Help force everything to fit on a single page — browsers differ; adjust scale if necessary */
+      html,body{height:100%}
+      /* Use a subtle scale on print to encourage single-page fit. If overflow occurs, user can set 'Shrink to fit' in print dialog. */
+      body{transform-origin:top left; transform:scale(0.96);} 
+    }
+
+    /* Small-screen adjustments */
+    @media (max-width:720px){
+      .meta-info div{ min-width:160px; }
+      td img{ max-width:120px; }
     }
   </style>
 </head>
@@ -62,7 +91,7 @@
     <button type="submit">Verify</button>
   </form>
 
-  <div id="result">
+  <div id="result" class="compact">
     <!-- TOP LINE -->
     <div id="inspectorTop" class="inspector-line">
       <strong>Notary Authorized </strong>
@@ -78,6 +107,8 @@
       <div><strong>Serial Number:</strong> <span id="z_srno"></span></div>
       <div><strong>Document Number:</strong> <span id="z_docno"></span></div>
       <div><strong>Type of Document:</strong> <span id="z_docType"></span></div>
+      <!-- Live saved date column -->
+      <div><strong>Saved On:</strong> <span id="z_savedOn"></span></div>
     </div>
 
     <!-- Parties table -->
@@ -93,8 +124,8 @@
       <tbody id="tbody_purchaser">
         <tr>
           <td id="z_purchaser"></td>
-          <td><img id="z_photoP" width="200"></td>
-          <td><img id="z_thumbP" width="100"></td>
+          <td><img id="z_photoP" width="200" alt="Photo Purchaser"></td>
+          <td><img id="z_thumbP" width="100" alt="Thumb Purchaser"></td>
           <td><div class="sig-box"></div></td>
         </tr>
       </tbody>
@@ -110,8 +141,8 @@
       <tbody id="tbody_seller">
         <tr>
           <td id="z_seller"></td>
-          <td><img id="z_photoS" width="200"></td>
-          <td><img id="z_thumbS" width="100"></td>
+          <td><img id="z_photoS" width="200" alt="Photo Seller"></td>
+          <td><img id="z_thumbS" width="100" alt="Thumb Seller"></td>
           <td><div class="sig-box"></div></td>
         </tr>
       </tbody>
@@ -130,8 +161,8 @@
       <tbody id="tbody_witness">
         <tr>
           <td id="z_witness"></td>
-          <td><img id="z_photoW" width="200"></td>
-          <td><img id="z_thumbW" width="100"></td>
+          <td><img id="z_photoW" width="200" alt="Photo Witness"></td>
+          <td><img id="z_thumbW" width="100" alt="Thumb Witness"></td>
           <td><div class="sig-box"></div></td>
         </tr>
       </tbody>
@@ -157,7 +188,7 @@
         ['Contact No.','contact'],
         ['Identification','idnumber'],
       ].map(([label,key]) => `<div><strong>${label}:</strong> ${person?.[key] || '—'}</div>`).join('');
-      const photo = person?.photo ? `<img src="${person.photo}" width="200">` : '';
+      const photo = person?.photo ? `<img src="${person.photo}" width="160">` : '';
       const thumb = person?.thumb ? `<img src="${person.thumb}" width="100">` : '';
       return `
         <tr>
@@ -166,6 +197,14 @@
           <td>${thumb}</td>
           <td><div class="sig-box"></div></td>
         </tr>`;
+    }
+
+    function formatDateISO(iso){
+      try{
+        const d = new Date(iso);
+        if (isNaN(d)) return iso || '—';
+        return d.toLocaleString();
+      }catch(e){return iso||'—';}
     }
 
     async function verifyRecord(e){
@@ -185,7 +224,7 @@
           return;
         }
 
-        // Update top inspector line dynamically
+        // Inspector line
         const inspector = (r.inspector_name || 'Archana Pandav').trim();
         document.getElementById('inspectorTop').innerHTML = `<strong>Notary Authorized Adv. ${inspector}</strong>`;
 
@@ -193,6 +232,11 @@
         document.getElementById('z_srno').innerText=r.metaNotarySrNo||'';
         document.getElementById('z_docno').innerText=r.metaDocumentNumber||'';
         document.getElementById('z_docType').innerText=r.metaDocumentType||'';
+
+        // Saved Date: check common fields savedAt / createdAt / metaSavedAt or fallback to now
+        const savedCandidates = [r.savedAt, r.createdAt, r.metaSavedAt, r.saved_on, r._savedAt, r.savedOn];
+        const savedRaw = savedCandidates.find(x=>x!==undefined && x!==null) || new Date().toISOString();
+        document.getElementById('z_savedOn').innerText = formatDateISO(savedRaw);
 
         // Column headings from types
         const tPurch = (r.purchaserType||'Purchaser').trim() || 'Purchaser';
@@ -247,6 +291,9 @@
         document.getElementById('z_consideration').innerText=r.consideration||'';
 
         result.style.display='block';
+
+        // Scroll result into view and try to reduce page gap at top
+        setTimeout(()=>{document.getElementById('result').scrollIntoView({behavior:'smooth', block:'start'});},50);
       }catch(err){
         console.error(err);
         flash.innerText='❌ Error fetching record.';
@@ -255,13 +302,9 @@
     }
 
     function printRecord(){
-      const orig=document.body.innerHTML;
-      document.body.innerHTML=document.getElementById('result').outerHTML;
+      // Use native print; print styles attempt to keep everything on one A4 page.
       window.print();
-      document.body.innerHTML=orig;
-      window.location.reload();
     }
   </script>
 </body>
 </html>
-
