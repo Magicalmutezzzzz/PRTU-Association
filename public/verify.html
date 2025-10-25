@@ -183,9 +183,71 @@
   </div>
 
   <script>
+    // -------------------------
+    // Image helpers (only JS changed to fix image problem)
+    // -------------------------
+
+    // Convert raw/base64/grid coverage to a browser-friendly src (data URI or URL)
+    function ensureDataUri(val){
+      if(!val) return '';
+      if(typeof val !== 'string') return val; // leave binary/other types as-is (server should handle)
+      const s = val.trim();
+
+      // already data URI
+      if(s.startsWith('data:')) return s;
+
+      // full URL or absolute path
+      if(s.startsWith('http://') || s.startsWith('https://') || s.startsWith('/')) return s;
+
+      // if it looks like base64 (only base64 chars and long enough) — add data: prefix
+      // heuristic: > 100 chars and only base64 chars, whitespace allowed
+      if(/^[A-Za-z0-9+/=\s]+$/.test(s) && s.length > 100){
+        // default to png mime if unknown — this is safest short-term
+        return 'data:image/png;base64,' + s.replace(/\s+/g,'');
+      }
+
+      // otherwise return as-is (may be relative url)
+      return s;
+    }
+
+    // Set image safely; hide if empty; set lazy loading; fallback to placeholder if load fails
+    function setImageSafe(elId, rawValue, placeholder){
+      const img = document.getElementById(elId);
+      if(!img) return;
+      const src = ensureDataUri(rawValue || '');
+      if(!src){
+        img.removeAttribute('src');
+        img.style.display = 'none';
+        return;
+      }
+      img.style.display = '';
+      img.loading = 'lazy';
+      img.onerror = function(){
+        // on error, optionally hide or show placeholder
+        if(placeholder){
+          img.onerror = null;
+          img.src = placeholder;
+        } else {
+          img.style.display = 'none';
+        }
+      };
+      img.src = src;
+    }
+
+    // -------------------------
+    // Existing functions (unchanged except where we use helpers)
+    // -------------------------
     function partyHTML(r, keys, labels){
       // build only the requested fields (contact removed)
       return keys.map((k,i)=>`<div><strong>${labels[i]}:</strong> ${r[k]||'—'}</div>`).join('');
+    }
+
+    function imgTagFromValue(val, maxWidth){
+      const src = ensureDataUri(val || '');
+      if(!src) return '';
+      const w = maxWidth ? ` style="max-width:${maxWidth}"` : '';
+      // returning an <img> tag; this keeps the extraRowHTML appearance identical
+      return `<img src="${src}"${w}>`;
     }
 
     function extraRowHTML(person){
@@ -196,8 +258,9 @@
         ['Residing At','address'],
         ['Identification','idnumber'],
       ].map(([label,key]) => `<div><strong>${label}:</strong> ${person?.[key] || '—'}</div>`).join('');
-      const photo = person?.photo ? `<img src="${person.photo}" style="max-width:120px">` : '';
-      const thumb = person?.thumb ? `<img src="${person.thumb}" style="max-width:100px">` : '';
+      // use imgTagFromValue to safely embed base64 or urls
+      const photo = person?.photo ? imgTagFromValue(person.photo, '120px') : '';
+      const thumb = person?.thumb ? imgTagFromValue(person.thumb, '100px') : '';
       return `
         <tr>
           <td>${details}</td>
@@ -215,6 +278,7 @@
       }catch(e){return iso||'—';}
     }
 
+    // Main verification function
     async function verifyRecord(e){
       e.preventDefault();
       const sr=document.getElementById('notarySrNo').value.trim();
@@ -260,22 +324,24 @@
           ['purchaserName','purchaserAge','purchaserOccupation','purchaserAddress','purchaserIdNumber'],
           ['Name','Age','Occupation','Residing At','Identification']
         );
-        document.getElementById('z_photoP').src=r.photoP||'';
-        document.getElementById('z_thumbP').src=r.thumbP||'';
+
+        // ***** IMAGE ASSIGNMENTS: use safe helper so raw base64 or data-URI or URL all work *****
+        setImageSafe('z_photoP', r.photoP || r.photoPUrl || r.photoP_b64);
+        setImageSafe('z_thumbP', r.thumbP || r.thumbPUrl || r.thumbP_b64);
 
         document.getElementById('z_seller').innerHTML = partyHTML(r,
           ['sellerName','sellerAge','sellerOccupation','sellerAddress','sellerIdNumber'],
           ['Name','Age','Occupation','Residing At','Identification']
         );
-        document.getElementById('z_photoS').src=r.photoS||'';
-        document.getElementById('z_thumbS').src=r.thumbS||'';
+        setImageSafe('z_photoS', r.photoS || r.photoSUrl || r.photoS_b64);
+        setImageSafe('z_thumbS', r.thumbS || r.thumbSUrl || r.thumbS_b64);
 
         document.getElementById('z_witness').innerHTML = partyHTML(r,
           ['witnessName','witnessAge','witnessOccupation','witnessAddress','witnessIdNumber'],
           ['Name','Age','Occupation','Residing At','Identification']
         );
-        document.getElementById('z_photoW').src=r.photoW||'';
-        document.getElementById('z_thumbW').src=r.thumbW||'';
+        setImageSafe('z_photoW', r.photoW || r.photoWUrl || r.photoW_b64);
+        setImageSafe('z_thumbW', r.thumbW || r.thumbWUrl || r.thumbW_b64);
 
         // Clear old extra rows
         ['purchaser','seller','witness'].forEach(key=>{
@@ -316,5 +382,3 @@
   </script>
 </body>
 </html>
-
-
