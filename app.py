@@ -50,7 +50,7 @@ def add_user():
 def get_users():
     try:
         page = int(request.args.get("page", 1))
-        limit = int(request.args.get("limit", 25))
+        limit = int(request.args.get("limit", 100))
         skip = (page - 1) * limit
 
         cursor = db.users.find().skip(skip).limit(limit)
