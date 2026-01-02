@@ -49,11 +49,11 @@ def add_user():
 @app.route("/get-users", methods=["GET"])
 def get_users():
     try:
-        page = int(request.args.get("page", 1))
-        limit = int(request.args.get("limit", 100))
-        skip = (page - 1) * limit
+        offset = int(request.args.get("offset", 60))   # how many to skip
+        limit = int(request.args.get("limit", 50))    # how many to return
 
-        cursor = db.users.find().skip(skip).limit(limit)
+        cursor = db.users.find().skip(offset).limit(limit)
+
         return app.response_class(
             dumps(list(cursor)),
             mimetype="application/json"
