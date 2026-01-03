@@ -50,7 +50,7 @@ def add_user():
 def get_users():
     try:
         offset = int(request.args.get("offset", 60))   # how many to skip
-        limit = int(request.args.get("limit", 50))    # how many to return
+        limit = int(request.args.get("limit", 100))    # how many to return
 
         cursor = db.users.find().skip(offset).limit(limit)
 
