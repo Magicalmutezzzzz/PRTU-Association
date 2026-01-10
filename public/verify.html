@@ -288,8 +288,8 @@
       flash.style.display=result.style.display='none';
 
       try{
-        const recs=await (await fetch('/get-users')).json();
-        const r=recs.find(u=>u.metaNotarySrNo===sr&&u.metaDocumentNumber===dn);
+        const res = await fetch(`/verify?sr=${encodeURIComponent(sr)}&dn=${encodeURIComponent(dn)}`);
+        const r = await res.json();
         if(!r){
           flash.innerText='❌ Record not found.';
           flash.style.display='block';
@@ -382,3 +382,4 @@
   </script>
 </body>
 </html>
+
