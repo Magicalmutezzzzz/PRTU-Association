@@ -77,5 +77,23 @@ def delete_user():
 
 
 if __name__ == "__main__":
+
+@app.route("/verify", methods=["GET"])
+def verify_api():
+    try:
+        sr = request.args.get("sr")
+        dn = request.args.get("dn")
+
+        if not sr or not dn:
+            return jsonify({}), 400
+
+        doc = db.users.find_one({
+            "metaNotarySrNo": sr,
+            "metaDocumentNumber": dn
+        })
+
+        return app.response_class(dumps(doc), mimetype="application/json")
+    except:
+        return jsonify({}), 500
     # NEVER RUN DEBUG TRUE IN PRODUCTION
     app.run(host="0.0.0.0", port=10000, debug=False)
