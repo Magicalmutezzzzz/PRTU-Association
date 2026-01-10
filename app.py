@@ -75,9 +75,6 @@ def delete_user():
     except Exception as e:
         return jsonify({"message": "Failed"}), 500
 
-
-if __name__ == "__main__":
-
 @app.route("/verify", methods=["GET"])
 def verify_api():
     try:
@@ -95,5 +92,7 @@ def verify_api():
         return app.response_class(dumps(doc), mimetype="application/json")
     except:
         return jsonify({}), 500
+        
+if __name__ == "__main__":
     # NEVER RUN DEBUG TRUE IN PRODUCTION
     app.run(host="0.0.0.0", port=10000, debug=False)
