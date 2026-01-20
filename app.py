@@ -49,7 +49,7 @@ def add_user():
 @app.route("/get-users", methods=["GET"])
 def get_users():
     try:
-        offset = int(request.args.get("offset", 62))   # how many to skip
+        offset = int(request.args.get("offset", 75))   # how many to skip
         limit = int(request.args.get("limit", 100))    # how many to return
 
         cursor = db.users.find().skip(offset).limit(limit)
