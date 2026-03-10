@@ -333,42 +333,65 @@
       c.style.display='block';
     }
     function captureFingerprintExtra(rowBase){
-      if(!window.CaptureFinger) return alert('SDK not running');
-      CaptureFinger(true,
-        res=>{
-          const img=document.getElementById(`${rowBase}-thumb`);
-          img.src='data:image/bmp;base64,'+res.BitmapData;
-          img.style.display='block';
-        },
-        e=>alert(e)
-      );
+
+  if(!window.CaptureFinger){
+    alert("Mantra RD Service not running");
+    return;
+  }
+
+  CaptureFinger(true,
+
+    function(res){
+
+      const img = document.getElementById(`${rowBase}-thumb`);
+
+      img.src = 'data:image/bmp;base64,' + res.BitmapData;
+      img.style.display = 'block';
+
+    },
+
+    function(err){
+      alert("Fingerprint capture failed");
     }
+
+  );
+
+}
 
     // Original single-block helpers (kept)
-    function takePhoto(role){
-      const v=document.getElementById('video'+role),
-            c=document.getElementById('canvas'+role);
-      c.width=v.videoWidth; c.height=v.videoHeight;
-      c.getContext('2d').drawImage(v,0,0);
-      c.style.display='block';
-    }
     function captureFingerprint(role){
-      if(!window.CaptureFinger) return alert('SDK not running');
+      if(!window.CaptureFinger){
+        alert("Mantra RD Service not running");
+        return;
+      }
+      
+      const btn = event.target;
+      btn.disabled = true;
+      btn.innerText = "Scanning...";
+      
       CaptureFinger(true,
-        res=>{
-          const img=document.getElementById('thumb'+role);
-          img.src='data:image/bmp;base64,'+res.BitmapData;
-          img.style.display='block';
-        },
-        e=>alert(e)
-      );
-    }
-    ['P','S','W'].forEach(r=>{
-      navigator.mediaDevices.getUserMedia({video:true})
-        .then(s=>document.getElementById('video'+r).srcObject=s)
-        .catch(()=>{/*ignore*/});
-    });
 
+    function(res){
+
+      const img = document.getElementById('thumb'+role);
+
+      img.src = 'data:image/bmp;base64,' + res.BitmapData;
+      img.style.display = 'block';
+      btn.disabled = false;
+      btn.innerText = "Capture Thumb";
+
+    },
+
+    function(err){
+      btn.disabled = false;
+      btn.innerText = "Capture Thumb";
+      alert("Fingerprint capture failed: " + err);
+
+    }
+
+  );
+
+}
     // Collect extra rows
     function collectExtra(key){
       const arr = [];
