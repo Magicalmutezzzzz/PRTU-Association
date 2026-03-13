@@ -4,8 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>PRTU Dashboard</title>
-  <script src="http://localhost:11100/mfs100.js"></script>
-  <style>
+   <style>
     body, h1, h2, input, button, video, canvas { margin:0; padding:0; font-family:Arial,sans-serif; }
     body { background:#f2f2f2; font-size:14px; line-height:1.4; }
     header { background:#003366; color:#fff; padding:10px 20px;
@@ -332,37 +331,100 @@
       c.getContext('2d').drawImage(v,0,0,c.width,c.height);
       c.style.display='block';
     }
-    function captureFingerprintExtra(rowBase){
-      if(!window.CaptureFinger) return alert('SDK not running');
-      CaptureFinger(true,
-        res=>{
-          const img=document.getElementById(`${rowBase}-thumb`);
-          img.src='data:image/bmp;base64,'+res.BitmapData;
+    async function captureFingerprintExtra(rowBase){
+      
+      try{
+        const res = await fetch("/capture-fingerprint",{
+          method:"POST"
+        })
+
+        const data = await res.json()
+
+        if(!data.success){
+          alert(data.error || "Fingerprint capture failed")
+            return
+        }
+
+        const img = document.getElementById(`${rowBase}-thumb`)
+
+        img.src = "data:image/bmp;base64," + data.image
+
+        img.style.display = "block"
+
+        }catch(err){
+
+          console.error(err)
+            alert("Fingerprint capture failed")
+
+        } 
+
+    }+res.BitmapData;
           img.style.display='block';
-        },
+
         e=>alert(e)
-      );
-    }
 
     // Original single-block helpers (kept)
-    function takePhoto(role){
-      const v=document.getElementById('video'+role),
-            c=document.getElementById('canvas'+role);
-      c.width=v.videoWidth; c.height=v.videoHeight;
-      c.getContext('2d').drawImage(v,0,0);
-      c.style.display='block';
+    async function captureFingerprint(role){
+
+  try{
+
+    const res = await fetch("/capture-fingerprint",{
+      method:"POST"
+    })
+
+    const data = await res.json()
+
+    if(!data.success){
+      alert(data.error || "Fingerprint capture failed")
+      return
     }
-    function captureFingerprint(role){
-      if(!window.CaptureFinger) return alert('SDK not running');
-      CaptureFinger(true,
-        res=>{
-          const img=document.getElementById('thumb'+role);
-          img.src='data:image/bmp;base64,'+res.BitmapData;
-          img.style.display='block';
-        },
-        e=>alert(e)
-      );
+
+    const img = document.getElementById("thumb"+role)
+
+    img.src = "data:image/bmp;base64," + data.image
+
+    img.style.display = "block"
+
+  }catch(err){
+
+    console.error(err)
+    alert("Fingerprint capture failed")
+
+  }
+
+}
+
+    async function captureFingerprint(role){
+
+  try{
+
+    const res = await fetch("/capture-fingerprint",{
+      method:"POST"
+    })
+
+    const data = await res.json()
+
+    if(!data.success){
+      alert(data.error || "Fingerprint capture failed")
+      return
     }
+
+    const img = document.getElementById("thumb"+role)
+
+    img.src = "data:image/bmp;base64," + data.image
+
+    img.style.display = "block"
+
+  }catch(err){
+
+    console.error(err)
+    alert("Fingerprint capture failed")
+
+  }
+
+}
+
+
     ['P','S','W'].forEach(r=>{
       navigator.mediaDevices.getUserMedia({video:true})
         .then(s=>document.getElementById('video'+r).srcObject=s)
