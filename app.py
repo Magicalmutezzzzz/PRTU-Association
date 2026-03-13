@@ -5,6 +5,11 @@ from bson.json_util import dumps
 from dotenv import load_dotenv
 import os
 import urllib.parse
+import ctypes
+import base64
+import io
+from PIL import Image
+
 
 load_dotenv()
 
@@ -24,6 +29,37 @@ app.config["MONGO_URI"] = (
 mongo = PyMongo(app)
 db = mongo.db
 
+# -------------------------------
+# SecuGen Scanner Setup
+# -------------------------------
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Tell Windows where DLLs are located
+os.add_dll_directory(BASE_DIR)
+
+# Load main SecuGen library
+sgfplib = ctypes.WinDLL(os.path.join(BASE_DIR, "sgfplib.dll"))
+
+IMAGE_WIDTH = 300
+IMAGE_HEIGHT = 400
+
+sensor = ctypes.c_void_p()
+
+SG_DEV_AUTO = 255
+
+r1 = sgfplib.CreateSGFPMObject(ctypes.byref(sensor))
+r2 = sgfplib.SGFPM_Init(sensor, SG_DEV_AUTO)
+r3 = sgfplib.SGFPM_OpenDevice(sensor, 0)
+
+print("CreateSGFPMObject:", r1)
+print("SGFPM_Init:", r2)
+print("SGFPM_OpenDevice:", r3)
+
+if r1 != 0 or r2 != 0 or r3 != 0:
+    raise Exception("SecuGen initialization failed")
+
+print("SecuGen scanner initialized")
 
 @app.route("/")
 def serve_index():
@@ -92,7 +128,45 @@ def verify_api():
         return app.response_class(dumps(doc), mimetype="application/json")
     except:
         return jsonify({}), 500
-        
+
+
+@app.route("/capture-fingerprint", methods=["POST"])
+def capture_fingerprint():
+    try:
+
+        img_buffer = (ctypes.c_ubyte * (IMAGE_WIDTH * IMAGE_HEIGHT))()
+
+        result = sgfplib.SGFPM_GetImage(sensor, img_buffer)
+
+        if result != 0:
+            return jsonify({
+                "success": False,
+                "error": f"Capture failed ({result})"
+            })
+
+        img = Image.frombytes(
+            "L",
+            (IMAGE_WIDTH, IMAGE_HEIGHT),
+            bytes(img_buffer)
+        )
+
+        buf = io.BytesIO()
+        img.save(buf, format="BMP")
+
+        encoded = base64.b64encode(buf.getvalue()).decode()
+
+        return jsonify({
+            "success": True,
+            "image": encoded
+        })
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
+
+
 if __name__ == "__main__":
     # NEVER RUN DEBUG TRUE IN PRODUCTION
     app.run(host="0.0.0.0", port=10000, debug=False)
