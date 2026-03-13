@@ -331,40 +331,40 @@
       c.getContext('2d').drawImage(v,0,0,c.width,c.height);
       c.style.display='block';
     }
-    async function captureFingerprintExtra(rowBase){
-      
-      try{
-        const res = await fetch("http://localhost:10000/capture-fingerprint",{
-          method:"POST"
-        })
 
-        const data = await res.json()
+    
+   async function captureFingerprintExtra(rowBase){
 
-        if(!data.success){
-          alert(data.error || "Fingerprint capture failed")
-            return
-        }
+  try{
 
-        const img = document.getElementById(`${rowBase}-thumb`)
+    const res = await fetch("http://localhost:10000/capture-fingerprint",{
+      method:"POST"
+    })
 
-        img.src = data.image;
+    const data = await res.json()
 
-        img.style.display = "block"
+    if(!data.success){
+      alert(data.error || "Fingerprint capture failed")
+      return
+    }
 
-        }catch(err){
+    const img = document.getElementById(`${rowBase}-thumb`)
 
-          console.error(err)
-            alert("Fingerprint capture failed")
+    img.src = data.image;
+    img.style.display = "block"
 
-        } 
+  }catch(err){
 
-    }+res.BitmapData;
-          img.style.display='block';
+    console.error(err)
+    alert("Fingerprint capture failed")
 
-        e=>alert(e)
+  }
 
-    // Original single-block helpers (kept)
-    async function captureFingerprint(role){
+}
+
+
+// Original single-block helpers
+async function captureFingerprint(role){
 
   try{
 
@@ -382,7 +382,6 @@
     const img = document.getElementById("thumb"+role)
 
     img.src = data.image;
-
     img.style.display = "block"
 
   }catch(err){
@@ -394,43 +393,39 @@
 
 }
 
-    async function captureFingerprint(role){
 
-  try{
-
-    const res = await fetch("http://localhost:10000/capture-fingerprint",{
-      method:"POST"
+// Start cameras automatically
+['P','S','W'].forEach(r=>{
+  navigator.mediaDevices.getUserMedia({video:true})
+    .then(s=>{
+      document.getElementById('video'+r).srcObject = s;
     })
-
-    const data = await res.json()
-
-    if(!data.success){
-      alert(data.error || "Fingerprint capture failed")
-      return
-    }
-
-    const img = document.getElementById("thumb"+role)
-
-    img.src = data.image;
-
-    img.style.display = "block"
-
-  }catch(err){
-
-    console.error(err)
-    alert("Fingerprint capture failed")
-
-  }
-
-}
-
-
-    ['P','S','W'].forEach(r=>{
-      navigator.mediaDevices.getUserMedia({video:true})
-        .then(s=>document.getElementById('video'+r).srcObject=s)
-        .catch(()=>{/*ignore*/});
+    .catch(err=>{
+      console.error(err);
+      alert("Camera access denied");
     });
+});
 
+
+    function takePhoto(role){
+
+      const video = document.getElementById("video"+role);
+      const canvas = document.getElementById("canvas"+role);
+
+      if(!video || !canvas){
+        alert("Camera not found");
+      return;
+  }
+
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+      canvas.style.display = "block";
+  }
+    
     // Collect extra rows
     function collectExtra(key){
       const arr = [];
