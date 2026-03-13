@@ -5,10 +5,10 @@ from bson.json_util import dumps
 from dotenv import load_dotenv
 import os
 import urllib.parse
-import ctypes
+#import ctypes
 import base64
-import io
-from PIL import Image
+#import io
+#from PIL import Image
 
 
 load_dotenv()
@@ -33,33 +33,34 @@ db = mongo.db
 # SecuGen Scanner Setup
 # -------------------------------
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+#BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Tell Windows where DLLs are located
-os.add_dll_directory(BASE_DIR)
+#os.add_dll_directory(BASE_DIR)
 
 # Load main SecuGen library
-sgfplib = ctypes.WinDLL(os.path.join(BASE_DIR, "sgfplib.dll"))
+#sgfplib = ctypes.WinDLL(os.path.join(BASE_DIR, "sgfplib.dll"))
 
-IMAGE_WIDTH = 300
-IMAGE_HEIGHT = 400
+#IMAGE_WIDTH = 300
+#IMAGE_HEIGHT = 400
 
-sensor = ctypes.c_void_p()
+#sensor = ctypes.c_void_p()
 
-SG_DEV_AUTO = 255
+#SG_DEV_AUTO = 255
 
-r1 = sgfplib.CreateSGFPMObject(ctypes.byref(sensor))
-r2 = sgfplib.SGFPM_Init(sensor, SG_DEV_AUTO)
-r3 = sgfplib.SGFPM_OpenDevice(sensor, 0)
+#r1 = sgfplib.CreateSGFPMObject(ctypes.byref(sensor))
+#r2 = sgfplib.SGFPM_Init(sensor, SG_DEV_AUTO)
+#r3 = sgfplib.SGFPM_OpenDevice(sensor, 0)
 
-print("CreateSGFPMObject:", r1)
-print("SGFPM_Init:", r2)
-print("SGFPM_OpenDevice:", r3)
+#print("CreateSGFPMObject:", r1)
+#print("SGFPM_Init:", r2)
+#print("SGFPM_OpenDevice:", r3)
 
-if r1 != 0 or r2 != 0 or r3 != 0:
-    raise Exception("SecuGen initialization failed")
+#if r1 != 0 or r2 != 0 or r3 != 0:
+    #raise Exception("SecuGen initialization failed")
 
-print("SecuGen scanner initialized")
+#print("SecuGen scanner initialized")
+
 
 @app.route("/")
 def serve_index():
@@ -129,7 +130,7 @@ def verify_api():
     except:
         return jsonify({}), 500
 
-
+'''
 @app.route("/capture-fingerprint", methods=["POST"])
 def capture_fingerprint():
     try:
@@ -165,7 +166,7 @@ def capture_fingerprint():
             "success": False,
             "error": str(e)
         })
-
+'''
 
 if __name__ == "__main__":
     # NEVER RUN DEBUG TRUE IN PRODUCTION
