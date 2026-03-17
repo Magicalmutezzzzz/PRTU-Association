@@ -86,27 +86,15 @@ def add_user():
 @app.route("/get-users", methods=["GET"])
 def get_users():
     try:
-        # OFFSET -> how many records to skip
-        offset = int(request.args.get("offset", 0))
+        offset = int(request.args.get("offset", 172))   # how many to skip
+        limit = int(request.args.get("limit", 100))    # how many to return
 
-        # LIMIT -> how many records to return
-        limit = int(request.args.get("limit", 100))
-
-        # Get documents sorted by document number,
-        # then skip first 173 records,
-        # then return next 100 records
-        cursor = (
-            db.users.find()
-            .sort("metaDocumentNumber", 1)
-            .skip(offset)
-            .limit(limit)
-        )
+        cursor = db.users.find().sort("metaDocumentNumber", 1).skip(offset).limit(limit)
 
         return app.response_class(
             dumps(list(cursor)),
             mimetype="application/json"
         )
-
     except Exception as e:
         return jsonify([]), 200
 
