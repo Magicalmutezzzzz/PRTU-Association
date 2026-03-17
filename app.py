@@ -86,16 +86,43 @@ def add_user():
 @app.route("/get-users", methods=["GET"])
 def get_users():
     try:
-        offset = int(request.args.get("offset", 172))   # how many to skip
-        limit = int(request.args.get("limit", 100))    # how many to return
+        # ----------------------------------------
+        # OFFSET → how many records to skip
+        # Default = 173 → skip first 178 documents
+        # ----------------------------------------
+        offset = int(request.args.get("offset", 178))
 
-        cursor = db.users.find().sort("metaDocumentNumber", 1).skip(offset).limit(limit)
+        # ----------------------------------------
+        # LIMIT → how many records to return
+        # Default = 100 → return 100 documents
+        # ----------------------------------------
+        limit = int(request.args.get("limit", 100))
 
+        # ----------------------------------------
+        # DATABASE QUERY FLOW:
+        # 1. find() → get all documents
+        # 2. sort() → arrange by document number (ascending)
+        # 3. skip() → skip first 'offset' records
+        # 4. limit() → return only 'limit' records
+        # ----------------------------------------
+        cursor = db.users.find()\
+            .sort("metaDocumentNumber", 1)   # 1 = ascending (1,2,3...)
+            .skip(offset)                   # skip first 173 records
+            .limit(limit)                   # return next 100 records
+
+        # ----------------------------------------
+        # Convert MongoDB cursor to JSON response
+        # ----------------------------------------
         return app.response_class(
             dumps(list(cursor)),
             mimetype="application/json"
         )
+
     except Exception as e:
+        # ----------------------------------------
+        # If any error occurs → return empty list
+        # (prevents frontend crash)
+        # ----------------------------------------
         return jsonify([]), 200
 
 
