@@ -86,45 +86,29 @@ def add_user():
 @app.route("/get-users", methods=["GET"])
 def get_users():
     try:
-        # ----------------------------------------
-        # OFFSET → how many records to skip
-        # Default = 173 → skip first 178 documents
-        # ----------------------------------------
-        offset = int(request.args.get("offset", 178))
+        # OFFSET -> how many records to skip
+        offset = int(request.args.get("offset", 173))
 
-        # ----------------------------------------
-        # LIMIT → how many records to return
-        # Default = 100 → return 100 documents
-        # ----------------------------------------
+        # LIMIT -> how many records to return
         limit = int(request.args.get("limit", 100))
 
-        # ----------------------------------------
-        # DATABASE QUERY FLOW:
-        # 1. find() → get all documents
-        # 2. sort() → arrange by document number (ascending)
-        # 3. skip() → skip first 'offset' records
-        # 4. limit() → return only 'limit' records
-        # ----------------------------------------
-        cursor = db.users.find()\
-            .sort("metaDocumentNumber", 1)   # 1 = ascending (1,2,3...)
-            .skip(offset)                   # skip first 173 records
-            .limit(limit)                   # return next 100 records
+        # Get documents sorted by document number,
+        # then skip first 173 records,
+        # then return next 100 records
+        cursor = (
+            db.users.find()
+            .sort("metaDocumentNumber", 1)
+            .skip(offset)
+            .limit(limit)
+        )
 
-        # ----------------------------------------
-        # Convert MongoDB cursor to JSON response
-        # ----------------------------------------
         return app.response_class(
             dumps(list(cursor)),
             mimetype="application/json"
         )
 
     except Exception as e:
-        # ----------------------------------------
-        # If any error occurs → return empty list
-        # (prevents frontend crash)
-        # ----------------------------------------
         return jsonify([]), 200
-
 
 @app.route("/delete-user", methods=["POST"])
 def delete_user():
