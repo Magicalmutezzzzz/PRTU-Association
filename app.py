@@ -87,7 +87,7 @@ def add_user():
 def get_users():
     try:
         # OFFSET -> how many records to skip
-        offset = int(request.args.get("offset", 173))
+        offset = int(request.args.get("offset", 0))
 
         # LIMIT -> how many records to return
         limit = int(request.args.get("limit", 100))
