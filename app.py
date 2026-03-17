@@ -77,7 +77,7 @@ def add_user():
     try:
         data = request.get_json(force=True) or {}
         db.users.insert_one(data)
-        return jsonify({"message": "Saved"}), 201
+        return jsonify({"message": "Document Saved Successfully ✅✅"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
