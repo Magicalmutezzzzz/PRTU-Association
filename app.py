@@ -89,7 +89,9 @@ def get_users():
         offset = int(request.args.get("offset", 172))   # how many to skip
         limit = int(request.args.get("limit", 25))    # how many to return
 
-        cursor = db.users.find().skip(offset).limit(limit)
+        cursor = db.users.find({
+        "document_number": {"$nin": [21, 22]}
+        }).skip(offset).limit(limit)
 
         return app.response_class(
             dumps(list(cursor)),
