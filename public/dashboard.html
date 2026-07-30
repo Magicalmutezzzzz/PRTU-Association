@@ -103,7 +103,6 @@
         <div class="field-group"><label>Age:</label><input id="purchaserAge" type="number"/></div>
         <div class="field-group"><label>Occupation:</label><input id="purchaserOccupation"/></div>
         <div class="field-group"><label>Residing At:</label><input id="purchaserAddress"/></div>
-        <div class="field-group"><label>Contact No.:</label><input id="purchaserContact"/></div>
         <div class="field-group"><label>Identification:</label><input id="purchaserIdNumber"/></div>
         <div class="capture-row">
           <div class="capture-block">
@@ -139,7 +138,6 @@
         <div class="field-group"><label>Age:</label><input id="sellerAge" type="number"/></div>
         <div class="field-group"><label>Occupation:</label><input id="sellerOccupation"/></div>
         <div class="field-group"><label>Residing At:</label><input id="sellerAddress"/></div>
-        <div class="field-group"><label>Contact No.:</label><input id="sellerContact"/></div>
         <div class="field-group"><label>Identification:</label><input id="sellerIdNumber"/></div>
         <div class="capture-row">
           <div class="capture-block">
@@ -438,7 +436,6 @@ async function captureFingerprint(role){
           age: v('age'),
           occupation: v('occupation'),
           address: v('address'),
-          contact: v('contact'),
           idnumber: v('idnumber'),
           photo: (canvas && canvas.style.display!=='none') ? canvas.toDataURL('image/png') : '',
           thumb: (img && img.style.display!=='none') ? img.src : ''
@@ -485,7 +482,6 @@ async function captureFingerprint(role){
         purchaserAge:  document.getElementById('purchaserAge').value,
         purchaserOccupation: document.getElementById('purchaserOccupation').value,
         purchaserAddress: document.getElementById('purchaserAddress').value,
-        purchaserContact: document.getElementById('purchaserContact').value,
         purchaserIdNumber: document.getElementById('purchaserIdNumber').value,
         photoP: document.getElementById('canvasP').toDataURL('image/png'),
         thumbP: document.getElementById('thumbP').src,
@@ -494,7 +490,6 @@ async function captureFingerprint(role){
         sellerAge:  document.getElementById('sellerAge').value,
         sellerOccupation: document.getElementById('sellerOccupation').value,
         sellerAddress: document.getElementById('sellerAddress').value,
-        sellerContact: document.getElementById('sellerContact').value,
         sellerIdNumber: document.getElementById('sellerIdNumber').value,
         photoS: document.getElementById('canvasS').toDataURL('image/png'),
         thumbS: document.getElementById('thumbS').src,
@@ -503,7 +498,6 @@ async function captureFingerprint(role){
         witnessAge:  document.getElementById('witnessAge').value,
         witnessOccupation: document.getElementById('witnessOccupation').value,
         witnessAddress: document.getElementById('witnessAddress').value,
-        witnessContact: document.getElementById('witnessContact').value,
         witnessIdNumber: document.getElementById('witnessIdNumber').value,
         photoW: document.getElementById('canvasW').toDataURL('image/png'),
         thumbW: document.getElementById('thumbW').src,
