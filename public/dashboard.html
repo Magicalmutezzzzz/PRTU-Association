@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>PRTU Dashboard</title>
+   <style>
+    body, h1, h2, input, button, video, canvas { margin:0; padding:0; font-family:Arial,sans-serif; }
+    body { background:#f2f2f2; font-size:14px; line-height:1.4; }
+    header { background:#003366; color:#fff; padding:10px 20px;
+             display:flex; justify-content:space-between; align-items:center; }
+    header h1 { font-size:18px; margin:0; }
+    header button { background:#ff4444; color:#fff; border:none; padding:5px 12px;
+                    border-radius:4px; cursor:pointer; }
+    nav { display:flex; background:#ddd; }
+    nav button { flex:1; padding:8px; border:none; cursor:pointer; background:#bbb;
+                 font-size:13px; }
+    nav button.active { background:#003366; color:#fff; }
+    main { padding:10px; }
+    .tab { display:none; }
+    .tab.active { display:block; }
+    .section { background:#fff; border:1px solid #ccc; border-radius:6px;
+                padding:12px; margin-bottom:12px; }
+    .section h2 { color:#004080; margin-bottom:8px; }
+    .field-group { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+    .field-group label { flex:0 0 140px; font-weight:bold; }
+    .field-group input { flex:1; padding:6px; border:1px solid #ccc; border-radius:4px; }
+    .capture-row { display:flex; gap:12px; margin-top:8px; flex-wrap:wrap; }
+    .capture-block { flex:1; background:#fafafa; border:1px solid #ddd;
+                     border-radius:4px; padding:8px; text-align:center; }
+    .capture-block video, .capture-block img, .capture-block canvas {
+      width:100%; max-height:180px; border-radius:4px; background:#000; }
+    .capture-block button { margin-top:6px; padding:6px 10px; border:none;
+                            background:#004080; color:#fff; border-radius:4px;
+                            cursor:pointer; }
+    .capture-block button:hover { background:#0066cc; }
+    .action-row { text-align:right; margin-top:12px; }
+    .action-row button { padding:8px 14px; margin-left:8px; border:none;
+                         border-radius:4px; cursor:pointer; font-size:14px; }
+    .btn-save { background:#28a745; color:#fff; }
+    .btn-clear { background:#dc3545; color:#fff; }
+
+    /* Dynamic extra-person rows */
+    .extra-row { border:1px solid #e6eefc; background:#fff; border-radius:6px; padding:8px; margin:10px 0; }
+    .row-flex { display:flex; gap:8px; flex-wrap:wrap; }
+    .col-6 { flex:1 1 240px; }
+    .col-12 { flex:1 1 100%; }
+    .row-actions { display:flex; gap:8px; margin-top:6px; justify-content:flex-end; }
+    .btn-ghost { background:#fff; border:1px solid #bbb; color:#333; }
+    .btn-danger { background:#c62828; color:#fff; }
+
+    /* “Add Person” button position */
+    .add-person-wrap { text-align:right; margin-top:8px; }
+    .btn-add { padding:6px 10px; border:1px solid #004080; background:#f5f9ff; color:#004080; border-radius:4px; cursor:pointer; }
+    .btn-add:hover { background:#e7f1ff; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PRTU Dashboard</h1>
+    <button onclick="logout()">Logout</button>
+  </header>
+  <nav>
+    <button class="active" onclick="switchTab('formTab',this)">Fill Sale Deed</button>
+    <button onclick="switchTab('logsTab',this)">View Saved</button>
+  </nav>
+  <main>
+    <!-- Fill form -->
+    <div id="formTab" class="tab active">
+      <!-- Metadata -->
+      <div class="section">
+        <h2>Document Metadata</h2>
+        <div class="field-group">
+          <label>Document Number:</label>
+          <input id="documentNumberTop" placeholder="e.g. RTG-1150"/>
+        </div>
+        <div class="field-group">
+          <label>Notary Reg. Sr. No.:</label>
+          <input id="notarySrNoTop" placeholder="e.g. 6143/22-05-2025"/>
+        </div>
+        <div class="field-group">
+          <label>Type of Document:</label>
+          <input id="documentTypeTop" placeholder="e.g. Sale Deed"/>
+        </div>
+        <!-- NEW: Notary Inspector Name (prefilled) -->
+        <div class="field-group">
+          <label><strong>Notary Inspector Name</strong></label>
+          <input id="inspector_name" value="Archana Pandav" placeholder="Enter Notary Inspector Name"/>
+        </div>
+      </div>
+
+      <!-- ====================== PURCHASER SECTION ====================== -->
+      <div class="section" id="purchaserSection">
+        <h2>Executing Parties — <span id="purchaserHeading">Purchaser</span></h2>
+        <!-- Column type input (controls the heading) -->
+        <div class="field-group">
+          <label>Type for this column:</label>
+          <input id="purchaserType" value="Purchaser" placeholder="e.g., Purchaser"/>
+        </div>
+
+        <!-- Original first person fields (keep IDs) -->
+        <div class="field-group"><label>Name:</label><input id="purchaserName"/></div>
+        <div class="field-group"><label>Age:</label><input id="purchaserAge" type="number"/></div>
+        <div class="field-group"><label>Occupation:</label><input id="purchaserOccupation"/></div>
+        <div class="field-group"><label>Residing At:</label><input id="purchaserAddress"/></div>
+        <div class="field-group"><label>Identification:</label><input id="purchaserIdNumber"/></div>
+        <div class="capture-row">
+          <div class="capture-block">
+            <strong>Photo</strong>
+            <video id="videoP" autoplay muted playsinline></video>
+            <canvas id="canvasP" style="display:none"></canvas>
+            <button onclick="takePhoto('P')">Capture Photo</button>
+          </div>
+          <div class="capture-block">
+            <strong>Thumb Impression</strong>
+            <button onclick="captureFingerprint('P')">Capture Thumb</button>
+            <img id="thumbP" style="display:none; margin-top:6px;"/>
+          </div>
+        </div>
+
+        <!-- Dynamic extra rows -->
+        <div id="purchaserExtraContainer"></div>
+        <!-- Add Person button directly below photo -->
+        <div class="add-person-wrap">
+          <button type="button" class="btn-add" onclick="addExtraRow('purchaser')">Add Person</button>
+        </div>
+      </div>
+
+      <!-- ====================== SELLER SECTION ====================== -->
+      <div class="section" id="sellerSection">
+        <h2>Executing Parties — <span id="sellerHeading">Seller</span></h2>
+        <div class="field-group">
+          <label>Type for this column:</label>
+          <input id="sellerType" value="Seller" placeholder="e.g., Seller"/>
+        </div>
+
+        <div class="field-group"><label>Name:</label><input id="sellerName"/></div>
+        <div class="field-group"><label>Age:</label><input id="sellerAge" type="number"/></div>
+        <div class="field-group"><label>Occupation:</label><input id="sellerOccupation"/></div>
+        <div class="field-group"><label>Residing At:</label><input id="sellerAddress"/></div>
+        <div class="field-group"><label>Identification:</label><input id="sellerIdNumber"/></div>
+        <div class="capture-row">
+          <div class="capture-block">
+            <strong>Photo</strong>
+            <video id="videoS" autoplay muted playsinline></video>
+            <canvas id="canvasS" style="display:none"></canvas>
+            <button onclick="takePhoto('S')">Capture Photo</button>
+          </div>
+          <div class="capture-block">
+            <strong>Thumb Impression</strong>
+            <button onclick="captureFingerprint('S')">Capture Thumb</button>
+            <img id="thumbS" style="display:none; margin-top:6px;"/>
+          </div>
+        </div>
+
+        <div id="sellerExtraContainer"></div>
+        <div class="add-person-wrap">
+          <button type="button" class="btn-add" onclick="addExtraRow('seller')">Add Person</button>
+        </div>
+      </div>
+
+      <!-- ====================== WITNESS SECTION ====================== -->
+      <div class="section" id="witnessSection">
+        <h2>Executing Parties — <span id="witnessHeading">Witness</span></h2>
+        <div class="field-group">
+          <label>Type for this column:</label>
+          <input id="witnessType" value="Witness" placeholder="e.g., Witness"/>
+        </div>
+
+        <div class="field-group"><label>Name:</label><input id="witnessName"/></div>
+        <div class="field-group"><label>Age:</label><input id="witnessAge" type="number"/></div>
+        <div class="field-group"><label>Occupation:</label><input id="witnessOccupation"/></div>
+        <div class="field-group"><label>Residing At:</label><input id="witnessAddress"/></div>
+        <div class="field-group"><label>Identification:</label><input id="witnessIdNumber"/></div>
+        <div class="capture-row">
+          <div class="capture-block">
+            <strong>Photo</strong>
+            <video id="videoW" autoplay muted playsinline></video>
+            <canvas id="canvasW" style="display:none"></canvas>
+            <button onclick="takePhoto('W')">Capture Photo</button>
+          </div>
+          <div class="capture-block">
+            <strong>Thumb Impression</strong>
+            <button onclick="captureFingerprint('W')">Capture Thumb</button>
+            <img id="thumbW" style="display:none; margin-top:6px;"/>
+          </div>
+        </div>
+
+        <div id="witnessExtraContainer"></div>
+        <div class="add-person-wrap">
+          <button type="button" class="btn-add" onclick="addExtraRow('witness')">Add Person</button>
+        </div>
+      </div>
+
+      <!-- Document Details -->
+      <div class="section">
+        <h2>Document Details</h2>
+        <div class="field-group"><label>Schedule of Property:</label>
+          <input id="scheduleOfProperty" placeholder="e.g. At Umbarhne, Survey No.…"/>
+        </div>
+        <div class="field-group"><label>Consideration:</label>
+          <input id="consideration" placeholder="Total Consideration of Rs…"/>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="action-row">
+        <button class="btn-clear" onclick="clearForm()">Clear</button>
+        <button class="btn-save" onclick="saveSaleDeed()">Save Sale Deed</button>
+      </div>
+    </div>
+
+    <!-- View Saved -->
+    <div id="logsTab" class="tab">
+      <h2>Saved Documents</h2>
+      <button onclick="window.location.href='users.html'">Click to View Saved Records</button>
+      <div id="noUsers" style="font-style:italic; margin-top:10px;">No records found.</div>
+      <div class="user-cards" id="userCards"></div>
+    </div>
+  </main>
+
+  <script>
+    // Tab switch
+    function switchTab(tabId,btn){
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+      if(tabId==='logsTab') loadUsers();
+    }
+    function logout(){ window.location.href='login.html'; }
+
+    // Live sync: input -> heading <span>
+    function syncHeading(inputId, spanId, fallback){
+      const inp = document.getElementById(inputId);
+      const span = document.getElementById(spanId);
+      const update = () => { span.textContent = (inp.value.trim() || fallback); };
+      inp.addEventListener('input', update);
+      update(); // initial
+    }
+
+    // Template for extra person rows
+    let extraId = 0;
+    function extraRowTemplate(key, id){
+      return `
+        <div class="extra-row" id="${key}-extra-${id}">
+          <div class="row-flex">
+            <div class="col-6">
+              <label style="font-weight:bold; display:block; margin-bottom:4px;">Name</label>
+              <input type="text" data-f="name">
+            </div>
+            <div class="col-6">
+              <label style="font-weight:bold; display:block; margin-bottom:4px;">Age</label>
+              <input type="number" data-f="age">
+            </div>
+
+            <div class="col-6">
+              <label style="font-weight:bold; display:block; margin-bottom:4px;">Occupation</label>
+              <input type="text" data-f="occupation">
+            </div>
+
+            <div class="col-12">
+              <label style="font-weight:bold; display:block; margin-bottom:4px;">Residing At</label>
+              <input type="text" data-f="address">
+            </div>
+
+            <div class="col-12">
+              <label style="font-weight:bold; display:block; margin-bottom:4px;">Identification</label>
+              <input type="text" data-f="idnumber">
+            </div>
+          </div>
+
+          <div class="capture-row">
+            <div class="capture-block">
+              <strong>Photo</strong>
+              <video id="${key}-extra-${id}-video" autoplay muted playsinline></video>
+              <canvas id="${key}-extra-${id}-canvas" style="display:none"></canvas>
+              <div class="row-actions">
+                <button type="button" class="btn-ghost" onclick="startCameraExtra('${key}-extra-${id}')">Start Camera</button>
+                <button type="button" onclick="takePhotoExtra('${key}-extra-${id}')">Capture Photo</button>
+              </div>
+            </div>
+
+            <div class="capture-block">
+              <strong>Thumb Impression</strong>
+              <img id="${key}-extra-${id}-thumb" style="display:none; margin-top:6px;"/>
+              <div class="row-actions">
+                <button type="button" onclick="captureFingerprintExtra('${key}-extra-${id}')">Capture Thumb</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="row-actions">
+            <button type="button" class="btn-danger" onclick="removeExtraRow('${key}-extra-${id}')">Remove</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function addExtraRow(key){
+      extraId += 1;
+      const container = document.getElementById(key + 'ExtraContainer');
+      container.insertAdjacentHTML('beforeend', extraRowTemplate(key, extraId));
+    }
+    function removeExtraRow(rowId){
+      const el = document.getElementById(rowId);
+      if (el) el.remove();
+    }
+
+    // Extra row camera helpers
+    function startCameraExtra(rowBase){
+      const v = document.getElementById(`${rowBase}-video`);
+      if (!navigator.mediaDevices?.getUserMedia) return alert('Camera not supported');
+      navigator.mediaDevices.getUserMedia({video:true})
+        .then(s=>{ v.srcObject = s; })
+        .catch(()=>alert('Unable to start camera'));
+    }
+    function takePhotoExtra(rowBase){
+      const v = document.getElementById(`${rowBase}-video`);
+      const c = document.getElementById(`${rowBase}-canvas`);
+      if (!v || !c) return;
+      c.width = v.videoWidth || 640;
+      c.height = v.videoHeight || 480;
+      c.getContext('2d').drawImage(v,0,0,c.width,c.height);
+      c.style.display='block';
+    }
+
+    
+   async function captureFingerprintExtra(rowBase){
+
+  try{
+
+    const res = await fetch("http://localhost:10000/capture-fingerprint",{
+      method:"POST"
+    })
+
+    const data = await res.json()
+
+    if(!data.success){
+      alert(data.error || "Fingerprint capture failed")
+      return
+    }
+
+    const img = document.getElementById(`${rowBase}-thumb`)
+
+    img.src = data.image;
+    img.style.display = "block"
+
+  }catch(err){
+
+    console.error(err)
+    alert("Fingerprint capture failed")
+
+  }
+
+}
+
+
+// Original single-block helpers
+async function captureFingerprint(role){
+
+  try{
+
+    const res = await fetch("http://localhost:10000/capture-fingerprint",{
+      method:"POST"
+    })
+
+    const data = await res.json()
+
+    if(!data.success){
+      alert(data.error || "Fingerprint capture failed")
+      return
+    }
+
+    const img = document.getElementById("thumb"+role)
+
+    img.src = data.image;
+    img.style.display = "block"
+
+  }catch(err){
+
+    console.error(err)
+    alert("Fingerprint capture failed")
+
+  }
+
+}
+
+
+// Start cameras automatically
+['P','S','W'].forEach(r=>{
+  navigator.mediaDevices.getUserMedia({video:true})
+    .then(s=>{
+      document.getElementById('video'+r).srcObject = s;
+    })
+    .catch(err=>{
+      console.error(err);
+      alert("Camera access denied");
+    });
+});
+
+
+    function takePhoto(role){
+
+      const video = document.getElementById("video"+role);
+      const canvas = document.getElementById("canvas"+role);
+
+      if(!video || !canvas){
+        alert("Camera not found");
+      return;
+  }
+
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+      canvas.style.display = "block";
+  }
+    
+    // Collect extra rows
+    function collectExtra(key){
+      const arr = [];
+      document.querySelectorAll(`#${key}ExtraContainer .extra-row`).forEach(row=>{
+        const v = sel => (row.querySelector(`[data-f="${sel}"]`)?.value || '').trim();
+        const canvas = row.querySelector('canvas');
+        const img = row.querySelector('img');
+        arr.push({
+          name: v('name'),
+          age: v('age'),
+          occupation: v('occupation'),
+          address: v('address'),
+          idnumber: v('idnumber'),
+          photo: (canvas && canvas.style.display!=='none') ? canvas.toDataURL('image/png') : '',
+          thumb: (img && img.style.display!=='none') ? img.src : ''
+        });
+      });
+      return arr;
+    }
+
+    // Clear
+    function clearForm(){
+      document.querySelectorAll('#formTab input').forEach(i=>i.value='');
+      document.getElementById('inspector_name').value = 'Archana Pandav';
+
+      // Clear original canvases/thumbs
+      document.querySelectorAll('canvas').forEach(c=>c.style.display='none');
+      document.querySelectorAll('.capture-block img').forEach(i=>i.style.display='none');
+
+      // Reset types & headings
+      document.getElementById('purchaserType').value='Purchaser';
+      document.getElementById('sellerType').value='Seller';
+      document.getElementById('witnessType').value='Witness';
+      document.getElementById('purchaserHeading').textContent='Purchaser';
+      document.getElementById('sellerHeading').textContent='Seller';
+      document.getElementById('witnessHeading').textContent='Witness';
+
+      // Remove extra rows
+      ['purchaser','seller','witness'].forEach(k=>{
+        document.getElementById(k+'ExtraContainer').innerHTML='';
+      });
+    }
+
+    // Save
+    async function saveSaleDeed(){
+      const payload = {
+        id: Date.now(),
+        metaDocumentNumber: document.getElementById('documentNumberTop').value,
+        metaNotarySrNo:  document.getElementById('notarySrNoTop').value,
+        metaDocumentType: document.getElementById('documentTypeTop').value,
+
+        inspector_name: document.getElementById('inspector_name').value || 'Archana Pandav',
+
+        // original single-person fields
+        purchaserName: document.getElementById('purchaserName').value,
+        purchaserAge:  document.getElementById('purchaserAge').value,
+        purchaserOccupation: document.getElementById('purchaserOccupation').value,
+        purchaserAddress: document.getElementById('purchaserAddress').value,
+        purchaserIdNumber: document.getElementById('purchaserIdNumber').value,
+        photoP: document.getElementById('canvasP').toDataURL('image/png'),
+        thumbP: document.getElementById('thumbP').src,
+
+        sellerName: document.getElementById('sellerName').value,
+        sellerAge:  document.getElementById('sellerAge').value,
+        sellerOccupation: document.getElementById('sellerOccupation').value,
+        sellerAddress: document.getElementById('sellerAddress').value,
+        sellerIdNumber: document.getElementById('sellerIdNumber').value,
+        photoS: document.getElementById('canvasS').toDataURL('image/png'),
+        thumbS: document.getElementById('thumbS').src,
+
+        witnessName: document.getElementById('witnessName').value,
+        witnessAge:  document.getElementById('witnessAge').value,
+        witnessOccupation: document.getElementById('witnessOccupation').value,
+        witnessAddress: document.getElementById('witnessAddress').value,
+        witnessIdNumber: document.getElementById('witnessIdNumber').value,
+        photoW: document.getElementById('canvasW').toDataURL('image/png'),
+        thumbW: document.getElementById('thumbW').src,
+
+        // Column type labels (which also drive the headings)
+        purchaserType: document.getElementById('purchaserType').value.trim() || 'Purchaser',
+        sellerType: document.getElementById('sellerType').value.trim() || 'Seller',
+        witnessType: document.getElementById('witnessType').value.trim() || 'Witness',
+
+        // Arrays of added persons
+        purchaserExtra: collectExtra('purchaser'),
+        sellerExtra: collectExtra('seller'),
+        witnessExtra: collectExtra('witness'),
+
+        scheduleOfProperty: document.getElementById('scheduleOfProperty').value,
+        consideration: document.getElementById('consideration').value
+      };
+      try{
+        const res = await fetch('/add-user',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        alert(data.message);
+        clearForm();
+      }catch{
+        alert('Failed to save');
+      }
+    }
+
+    //// TODO: Open edit form or modal with pre-filled values
+    function editUser(user) { alert("Edit clicked for: " + (user.purchaserName||'-')); }
+
+    // Live heading sync on load
+    document.addEventListener('DOMContentLoaded', () => {
+      syncHeading('purchaserType','purchaserHeading','Purchaser');
+      syncHeading('sellerType','sellerHeading','Seller');
+      syncHeading('witnessType','witnessHeading','Witness');
+    });
+
+    // Stub for View Saved (unchanged structure, implement in your app as before)
+    async function loadUsers() {
+      // your existing logic that fetches /get-users and renders cards
+    }
+  </script>
+</body>
+</html>
