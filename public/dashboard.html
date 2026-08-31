@@ -192,6 +192,21 @@
         </div>
       </div>
 
+     <!-- Nominee Details -->
+
+      <div class="section">
+        <h2>Nominee Details</h2>
+
+        <div class="field-group">
+          <label>Nominee Details:</label>
+          <input
+            type="text"
+            id="nomineeDetails"
+            maxlength="100"
+            placeholder="Enter nominee details (Maximum 100 characters)"
+          />
+        </div>
+      </div>
       <!-- Document Details -->
       <div class="section">
         <h2>Document Details</h2>
@@ -506,7 +521,8 @@ async function captureFingerprint(role){
         purchaserExtra: collectExtra('purchaser'),
         sellerExtra: collectExtra('seller'),
         witnessExtra: collectExtra('witness'),
-
+        
+        nomineeDetails: document.getElementById('nomineeDetails').value,
         scheduleOfProperty: document.getElementById('scheduleOfProperty').value,
         consideration: document.getElementById('consideration').value
       };

@@ -176,6 +176,12 @@
       </tbody>
     </table>
 
+
+    <div class="contents">
+      <strong>NOMINEE DETAILS:</strong>
+      <span id="z_nominee"></span>
+  </div>
+
     <div class="contents"><strong>CONTENTS OF THE DOCUMENT MENTIONED THEREIN:</strong> <span id="z_contents"></span></div>
     <div class="schedule"><strong>SCHEDULE OF PROPERTY:</strong> <span id="z_schedule"></span></div>
     <div class="consideration"><strong>CONSIDERATION OF PROPERTY:</strong> <span id="z_consideration"></span></div>
@@ -342,6 +348,8 @@
         );
         setImageSafe('z_photoW', r.photoW || r.photoWUrl || r.photoW_b64);
         setImageSafe('z_thumbW', r.thumbW || r.thumbWUrl || r.thumbW_b64);
+
+        document.getElementById("z_nominee").innerText = r.nomineeDetails || "—";
 
         // Clear old extra rows
         ['purchaser','seller','witness'].forEach(key=>{
